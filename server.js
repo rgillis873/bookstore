@@ -1,16 +1,32 @@
 const express = require("express");
 const app = express();
+const pool = require("./db")
 
 app.use(express.json());
+app.use(express.static("public"));
+//View Engine
+app.set("view engine", "pug");
 
-app.get("/users", async(req,res)=>{
+app.get("/", async(req, res)=>{
+    try {
+        res.render("pages/index", {
+
+        });
+    } catch (error) {
+        console.error(err.message);
+    }
+})
+
+app.get("/books", async(req,res)=>{
     try{
-        //const allUsers = await pool.query("SELECT * FROM allusers");
-        //res.json(allUsers.rows);
-        res.json("ok");
+        const allBooks = await pool.query("SELECT * FROM book");
+        //res.json(allBooks.rows);
+        res.render("pages/books", {
+            books: allBooks.rows
+        });
     }
     catch (err){
-        //console.error(err.message);
+        console.error(err.message);
     }
 })
 

@@ -1,0 +1,11 @@
+html
+    head
+        title Look Inna Book BookStore
+        include ./header.pug
+    body 
+        each book in books
+            div(id="1" class="book_class")
+                img(src='/images/open-book.png' alt='book' style='width:100px; height:100px;')
+                p #{book.name}
+                br
+                p #{book.author}
