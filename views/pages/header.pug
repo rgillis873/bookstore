@@ -28,3 +28,18 @@ a(href="http://localhost:3000/storeorders")="View Store Orders"
 		label.form-label(for='form1')
 	button.btn.btn-primary(type='button') Search
 		i.fas.fa-search
+
+if userName
+	|Currently logged in as:
+	|
+	p #{userName}
+	br
+	br
+else
+	form#thelogin(action="/signin" method="POST")
+		|Username: 
+		input#username(type="text" name="user_name" required)
+		|
+		|Password: 
+		input#password(type="password" name="pass_word" required)
+		button(type="submit")="Submit"

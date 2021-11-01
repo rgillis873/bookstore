@@ -1,10 +1,15 @@
 const express = require("express");
 const app = express();
+const session = require("express-session")
+const cookieParser = require("cookie-parser")
 const bodyParser = require("body-parser")
 const pool = require("./db")
 
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended:true}));
+
+app.use(cookieParser());
+app.use(session({secret:"This is a book store"}));
 
 app.use(express.static("public"));
 //View Engine
@@ -24,7 +29,11 @@ app.get("/books", async(req,res)=>{
     try{
         const allBooks = await pool.query("SELECT * FROM book");
         //res.json(allBooks.rows);
+        if(req.session.user_name){
+            console.log(req.session.user_name);
+        }
         res.render("pages/books", {
+            userName : req.session.user_name,
             books: allBooks.rows
         });
     }
@@ -65,6 +74,7 @@ app.post("/register", async(req,res)=>{
         if(user_name && email){
             const addUser = await pool.query("Insert into site_user(first_name, last_name, email, user_name, user_pass) values($1, $2, $3, $4, $5)"
             , [first_name, last_name, email, user_name, user_pass]);
+            req.session.user_name = user_name;
             res.redirect("/books")
         }else{
             res.json("Already have a user with that name")
@@ -75,12 +85,12 @@ app.post("/register", async(req,res)=>{
     }
 })
 
-app.get("/signin", async(req,res)=>{
+app.post("/signin", async(req,res)=>{
     try{
-        //const allBooks = await pool.query("SELECT * FROM book");
-        res.render("pages/register", {
-            
-        });
+        //check if username is valid
+        //need to handle if username/password is not correct
+        req.session.user_name = req.body.user_name
+        res.redirect("back");
     }
     catch (err){
         console.error(err.message);
