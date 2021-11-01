@@ -3,9 +3,10 @@ html
         title Look Inna Book BookStore
         include ./header.pug
     body 
-        each book in books
-            div(id="1" class="book_class")
-                img(src='/images/open-book.png' alt='book' style='width:100px; height:100px;')
-                p #{book.name}
-                br
-                p #{book.author}
+        div(id="two" class="book_holder" style="display:flex; flex-wrap:wrap;")
+            each book in books
+                div(id="1" class="book_class" style="width: 20%")
+                    img(src='/images/open-book.png' alt='book' style='width:100px; height:100px;')
+                    br
+                    a(href="http://localhost:3000/books/${book.isbn}") #{book.name}
+                    p #{book.author}
