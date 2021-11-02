@@ -4,29 +4,28 @@ html
         include ./header.pug
     body 
         form(action='/register' method='post')
-            .container
-                h1 Register
-                p Please fill in this form to create an account
-                hr
-                label(for='first_name')
-                    b First Name
-                input#first_name(type='text' placeholder='Enter First Name' name='first_name' required='')
-                label(for='last_name')
-                    b Last Name
-                input#last_name(type='text' placeholder='Enter Last Name' name='last_name' required='')
-                label(for='email')
-                    b Email
-                input#email(type='text' placeholder='Enter Email' name='email' required='')
-                label(for='user_name')
-                    b Username
-                input#user_pass(type='text' placeholder='Enter username' name='user_name' required='')
-                label(for='user_pass')
-                    b Password
-                input#user_pass(type='password' placeholder='Enter Password' name='user_pass' required='')
-                hr
-                button(type="submit")="Submit"
-            .container.signin
-                p
-                    | Already have an account? 
-                    a(href='/signin') Sign in
-                    | .
+            h1 Register
+            p Please fill in this form to create an account
+            .form-row
+                .form-group.col-md-6
+                    label(for='first_name') First Name
+                    input#first_name.form-control(type='text' placeholder='TJ' name="first_name" required)
+                .form-group.col-md-6
+                    label(for='last_name') Last Name
+                    input#last_name.form-control(type='text' placeholder='Detweiler' name="last_name" required)
+                .form-group.col-md-6
+                    label(for='email') Email
+                    input#email.form-control(type='email' placeholder='hello@goodbye.com' name="email" required)
+            .form-row    
+                .form-group.col-md-6
+                    label(for='user_name') Username
+                    input#user_name.form-control(type='text' placeholder='tj123' name="user_name" required)
+                .form-group.col-md-6
+                    label(for='pass_word') Password
+                    input#pass_word.form-control(type='password' name="user_pass" required)
+            button.btn.btn-primary(type='submit') Register
+        .container.signin
+            p
+            | Already have an account? 
+            a(href='/signin') Sign in
+            | .

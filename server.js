@@ -71,6 +71,7 @@ app.post("/register", async(req,res)=>{
         let email = req.body.email;
         let user_name = req.body.user_name;
         let user_pass = req.body.user_pass;
+        console.log(req.body)
         if(user_name && email){
             const addUser = await pool.query("Insert into site_user(first_name, last_name, email, user_name, user_pass) values($1, $2, $3, $4, $5)"
             , [first_name, last_name, email, user_name, user_pass]);
