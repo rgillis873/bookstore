@@ -1,45 +1,38 @@
-
-a(href="http://localhost:3000/")="Home"
-|
-|
-a(href="http://localhost:3000/books")="Books"
-|
-|
-a(href="http://localhost:3000/register")="Register"
-|
-|
-a(href="http://localhost:3000/cart")="View Cart"
-|
-|
-a(href="http://localhost:3000/tracking")="Track an Order"
-|
-|
-a(href="http://localhost:3000/checkout")="Checkout"
-|
-|
-a(href="http://localhost:3000/sales")="View Sales"
-|
-|
-a(href="http://localhost:3000/storeorders")="View Store Orders"
-|
-.input-group
-	.form-outline
-		input#form1.form-control(type='search' placeholder="Search")
-		label.form-label(for='form1')
-	button.btn.btn-primary(type='button') Search
-		i.fas.fa-search
-
-if userName
-	|Currently logged in as:
-	|
-	p #{userName}
-	br
-	br
-else
-	form#thelogin(action="/signin" method="POST")
-		|Username: 
-		input#username(type="text" name="user_name" required)
-		|
-		|Password: 
-		input#password(type="password" name="pass_word" required)
-		button(type="submit")="Submit"
+link(rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css' integrity='sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO' crossorigin='anonymous')
+nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
+	a.navbar-brand(href='#') Look Inna Book
+	ul.navbar-nav.mr-auto.mt-2.mt-lg-0
+		li.nav-item.active
+			a.nav-link(href='/')
+				| Home 
+				span.sr-only (current)
+		li.nav-item
+			a.nav-link(href='/books') Books
+		li.nav-item
+			a.nav-link(href='/register') Register
+		li.nav-item
+			a.nav-link(href='/cart') View Cart
+		li.nav-item
+			a.nav-link(href='/checkout') Checkout
+		if userName
+			p.text-secondary Logged in as: #{userName}
+			br
+			br
+			if userName == "admin"
+				li.nav-item
+					a.nav-link(href='/sales') Sales
+				li.nav-item
+					a.nav-link(href='/storeorders') Store Orders	
+		else
+			form.form-inline.my-2.my-lg-0(action="/signin" method="post")
+				label(for='user_name' style="color:white")
+					b Username
+				input.form-control.mr-sm-2(type="text" name="user_name" required)
+				|
+				label(for='pass_word' style="color:white")
+					b Password
+				input.form-control.mr-sm-2(type="password" name="pass_word" required)
+				button.btn.btn-outline-success.my-2.my-sm-0(type="submit") Sign In
+	form.form-inline.my-2.my-lg-0
+		input.form-control.mr-sm-2(type='search' placeholder='Search')
+		button.btn.btn-outline-success.my-2.my-sm-0(type='submit') Search

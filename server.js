@@ -18,7 +18,7 @@ app.set("view engine", "pug");
 app.get("/", async(req, res)=>{
     try {
         res.render("pages/index", {
-
+            userName : req.session.user_name
         });
     } catch (error) {
         console.error(err.message);
@@ -56,7 +56,7 @@ app.get("/register", async(req,res)=>{
     try{
         //const allBooks = await pool.query("SELECT * FROM book");
         res.render("pages/register", {
-            
+            userName : req.session.user_name
         });
     }
     catch (err){
@@ -89,6 +89,7 @@ app.post("/signin", async(req,res)=>{
     try{
         //check if username is valid
         //need to handle if username/password is not correct
+        console.log(req.body.user_name)
         req.session.user_name = req.body.user_name
         res.redirect("back");
     }
@@ -112,7 +113,11 @@ app.get("/sales", async(req,res)=>{
 app.get("/checkout", async(req,res)=>{
     try{
         //const allBooks = await pool.query("SELECT * FROM book");
-        res.json("checkout");
+        //res.json("checkout");
+        user_name = req.session.user_name
+        res.render("pages/checkout", {
+            userName: user_name
+        });
     }
     catch (err){
         console.error(err.message);
