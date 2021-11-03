@@ -6,19 +6,48 @@ html
 
         .container-fluid
             .row
-                .col-sm-2
-                    p Search Books
-                    form.form-inline.my-2.my-lg-0
-                        input.form-control.mr-sm-2(type='search' placeholder='Search')
-                        button.btn.btn-outline-success.my-2.my-sm-0(type='submit') Search
-                    br
-                    select.form-select(aria-label='Author')
-                        option(selected='') Select an Author
-                        option(value='1') One
-                        option(value='2') Two
-                        option(value='3') Three
+                .col-sm-2(style='background-color:slategrey; min-height:100%')
+                    h4.mb-3 Search Books
+                    form.form-inline.my-2.my-lg-0(action='/books' method='get')
+                        input.form-control.mr-sm-2(type='search' placeholder='Search Books By Name' name='book_name')
+                        br
+                        br
+                        input.form-control.mr-sm-2(type='search' placeholder='Search Books By ISBN' name='book_isbn')
+                        br
+                        br
+                        select.form-select(aria-label='Genre' name='genre')
+                            option(selected='') Select a Genre
+                            option(value='1') One
+                            option(value='2') Two
+                            option(value='3') Three
+                        br
+                        br
+                        select.form-select(aria-label='Author' name='author')
+                            option(selected='') Select an Author
+                            option(value='1') One
+                            option(value='2') Two
+                            option(value='3') Three
+                        br
+                        br
+                        select.form-select(aria-label='Publisher' name='publisher')
+                            option(selected='') Select a Publisher
+                            option(value='1') One
+                            option(value='2') Two
+                            option(value='3') Three
+                        br
+                        br
+                        row.col-md-6(style='text-align: left;')
+                            label(for='price_range') Price Range
+                            input(type='range' value='100' min='0' max='100' name='price_range' oninput='this.nextElementSibling.value = `$0 to $` + this.value')
+                            output $0 to $100
+                        br
+                        br
+                        row.col-md-12
+                            button.btn.btn-primary-success.my-2.my-sm-0(type='submit') Search
+                    
 
                 .col-sm-10(id="two" class="book_holder" style="display:flex; flex-wrap:wrap;")
+                    .card-deck
                     each book in books
                         .card(style='width: 18rem;')
                             img.card-img-top(src='/images/open-book.png' alt=`${book.name}`)

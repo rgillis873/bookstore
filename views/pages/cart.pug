@@ -1,0 +1,32 @@
+html
+    head
+        title Look Inna Book BookStore
+        include ./header.pug
+    body
+        h1 Current Cart Items
+        table.table
+            thead
+                tr
+                    th(scope='col' style='width: 40%;') Book Name
+                    th(scope='col' style='width: 30%;') Quantity
+                    th(scope='col' style='width: 10%;') Price
+                    th(scope='col' style='width: 20%;') Remove Item
+            tbody
+                for item in cart
+                    tr
+                        th(scope='row') #{item.item}
+                        td 
+                            form(action='/cart' method='post')
+                                input#quantity(type='number' name='quantity' min='1' value=`${item.quantity}`)
+                                |
+                                |
+                                button.btn.btn-primary(type='submit' name='update' value=`${item.item}`) Update Quantity
+                        td #{item.price}
+                        td
+                            form(action='/cart' method='post')
+                                button.btn.btn-danger(type='submit' name='remove' value=`${item.item}`) Remove
+                tr
+                    th(scope='row')
+                    td Current Subtotal 
+                    td 34.98
+

@@ -3,7 +3,8 @@ const app = express();
 const session = require("express-session")
 const cookieParser = require("cookie-parser")
 const bodyParser = require("body-parser")
-const pool = require("./db")
+const pool = require("./db");
+const { request } = require("express");
 
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended:true}));
@@ -32,6 +33,7 @@ app.get("/books", async(req,res)=>{
         if(req.session.user_name){
             console.log(req.session.user_name);
         }
+        console.log(req.query)
         res.render("pages/books", {
             userName : req.session.user_name,
             books: allBooks.rows
@@ -115,9 +117,11 @@ app.get("/checkout", async(req,res)=>{
     try{
         //const allBooks = await pool.query("SELECT * FROM book");
         //res.json("checkout");
+        const getCartContents = await pool.query("SELECT * FROM cart");
         user_name = req.session.user_name
         res.render("pages/checkout", {
-            userName: user_name
+            userName: user_name,
+            cart: getCartContents.rows
         });
     }
     catch (err){
@@ -127,13 +131,35 @@ app.get("/checkout", async(req,res)=>{
 
 app.get("/cart", async(req,res)=>{
     try{
-        //const allBooks = await pool.query("SELECT * FROM book");
-        res.json("cart");
+        const getCartContents = await pool.query("SELECT * FROM cart");
+        user_name = req.session.user_name
+        res.render("pages/cart", {
+            userName: user_name,
+            cart: getCartContents.rows
+        });
     }
     catch (err){
         console.error(err.message);
     }
 })
+
+app.post("/cart", async(req,res)=>{
+    try{
+        if(req.body.remove){
+            removed_item = req.body.remove
+            const updateCartContents = await pool.query("DELETE FROM cart where item=$1", [removed_item]);
+        }else if(req.body.update){
+            updated_item = req.body.update
+            new_quantity = req.body.quantity
+            const updateCartContents = await pool.query("UPDATE cart set quantity=$1 where item=$2", [new_quantity, updated_item]);
+        }
+        res.redirect("back")
+    }
+    catch (err){
+        console.error(err.message);
+    }
+})
+
 
 app.get("/storeorders", async(req,res)=>{
     try{
