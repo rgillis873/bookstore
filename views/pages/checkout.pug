@@ -2,7 +2,9 @@ html
     head
         title Look Inna Book BookStore
         include ./header.pug
+        script(src='/js/checkout.js')
     body
+        //script(src='./js/checkout.js')
         h1 Checkout
         if !userName
             p Store account required for checkout. Please sign in above or register at the link below before proceeding to the checkout 
@@ -45,7 +47,7 @@ html
 
 
             h2 Billing Info
-            form
+            form(action='/checkout' method='post')
                 .form-row
                     .form-group.col-md-6
                         label(for='inputFirstNameB') First Name
@@ -56,19 +58,22 @@ html
                     .form-group.col-md-6
                         label(for='inputEmailB') Email
                         input#inputEmailB.form-control(type='email' placeholder='hello@goodbye.com' required)
+                    .form-group.col-md-6
+                        label(for='inputPhoneB') Phone Number
+                        input#inputPhoneB.form-control(type='tel' placeholder='123-456-7891' required)
                 .form-group
                     label(for='inputAddressB') Address
                     input#inputAddressB.form-control(type='text' placeholder='1234 Main St' required)
                 .form-group
-                    label(for='inputAddress2') Address 2
-                    input#inputAddress2B.form-control(type='text' placeholder='Apartment, studio, or floor' required)
+                    label(for='inputAddress2B') Address 2
+                    input#inputAddress2B.form-control(type='text' placeholder='Apartment, studio, or floor')
                 .form-row
                     .form-group.col-md-6
                         label(for='inputCityB') City
                         input#inputCityB.form-control(type='text' required)
                     .form-group.col-md-6
                         label(for='inputProvinceB') Province
-                        input#inputStateB.form-control(type='text' required)
+                        input#inputProvinceB.form-control(type='text' required)
                     .form-group.col-md-2
                         label(for='inputPostalB') Postal Code
                         input#inputPostalB.form-control(type='text' placeholder='A1B4W9' required)
@@ -81,10 +86,14 @@ html
                         input#inputCreditExpiryB.form-control(type='text' placeholder='11/22' required)
                     .form-group.col-md-6
                         label(for='inputCVVB') CVV
-                        input#inputEmailB.form-control(type='email' placeholder='123' required)
+                        input#inputCVVB.form-control(type='text' placeholder='123' required)
 
                 br
                 br
+                .form-check
+                    input#shipCheck.form-check-input(type='checkbox' value='' oninput="setShippingValues()")
+                    label.form-check-label(for='shipCheck')
+                        | Shipping Info Same as Billing
                 br
                 h2 Shipping Info
                 .form-row
@@ -97,20 +106,24 @@ html
                     .form-group.col-md-6
                         label(for='inputEmailS') Email
                         input#inputEmailS.form-control(type='email' placeholder='hello@goodbye.com' required)
+                    .form-group.col-md-6
+                        label(for='inputPhoneS') Phone Number
+                        input#inputPhoneS.form-control(type='tel' placeholder='123-456-7891' required)
                 .form-group
                     label(for='inputAddressS') Address
                     input#inputAddressS.form-control(type='text' placeholder='1234 Main St' required)
                 .form-group
                     label(for='inputAddress2S') Address 2
-                    input#inputAddress2S.form-control(type='text' placeholder='Apartment, studio, or floor' required)
+                    input#inputAddress2S.form-control(type='text' placeholder='Apartment, studio, or floor')
                 .form-row
                     .form-group.col-md-6
                         label(for='inputCityS') City
                         input#inputCityS.form-control(type='text' required)
                     .form-group.col-md-4
                         label(for='inputProvinceS') Province
-                        input#inputStateS.form-control(type='text' required)
+                        input#inputProvinceS.form-control(type='text' required)
                     .form-group.col-md-2
                         label(for='inputPostalS') Postal Code
                         input#inputPostalS.form-control(type='text' placeholder='A1B4W9' required)
-                button.btn.btn-primary(type='submit') Sign in
+                button.btn.btn-success(type='submit') Complete Checkout
+

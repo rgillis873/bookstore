@@ -1,0 +1,13 @@
+html
+    head
+        title Look Inna Book BookStore
+        include ./header.pug
+    body
+        if orderid
+            h2 Order Successful
+            br
+            b4 Your order id is: #{orderid}
+        else
+            h2 Order Unsuccessful
+            br
+            b4 Your order could not be placed

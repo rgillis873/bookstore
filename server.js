@@ -45,9 +45,14 @@ app.get("/books", async(req,res)=>{
 })
 
 app.get("/books/:isbn", async(req,res)=>{
+    console.log(req.params);
     try{
-        //const allBooks = await pool.query("SELECT * FROM book");
-        res.json("INDIVIDUAL BOOK");
+        const bookInfo = await pool.query("SELECT * FROM book where isbn=$1",[parseInt(req.params.isbn)]);
+        console.log(bookInfo.rows);
+        res.render("pages/book", {
+            userName : req.session.user_name,
+            book: bookInfo.rows[0]
+        });
     }
     catch (err){
         console.error(err.message);
@@ -122,6 +127,22 @@ app.get("/checkout", async(req,res)=>{
         res.render("pages/checkout", {
             userName: user_name,
             cart: getCartContents.rows
+        });
+    }
+    catch (err){
+        console.error(err.message);
+    }
+})
+
+app.post("/checkout", async(req,res)=>{
+    try{
+        //const Contents = await pool.query("SELECT * FROM cart");
+        //empty cart, update book quantities, check if have enough
+
+        user_name = req.session.user_name
+        res.render("pages/orderstatus", {
+            userName: user_name,
+            orderid: 12345
         });
     }
     catch (err){

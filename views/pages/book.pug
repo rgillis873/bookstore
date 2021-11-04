@@ -1,0 +1,27 @@
+html
+    head
+        title Look Inna Book BookStore
+        include ./header.pug
+    body
+        .col.justify-content-center(style='width= 100%')
+            .card(style='width: 30%;')
+                //img.card-img-top(src='/images/open-book.png' alt='book')
+                img.card-img-top(src=`${book.book_image}` alt='book')
+                .card-body
+                    h5.card-title #{book.name}
+                    p.card-text
+                        | This is a book description
+                ul.list-group.list-group-flush
+                    li.list-group-item Genre:
+                    li.list-group-item Author(s): #{book.author}
+                    li.list-group-item Pages: 
+                    li.list-group-item Publisher: 
+                    li.list-group-item ISBN: #{book.isbn}
+                    li.list-group-item Price: #{book.price}
+                    li.list-group-item Rating:
+                .card-body
+                    form(action='/cart' method='post')
+                        input#quantity(type='number' name='quantity' min='1' value='1')
+                        |
+                        |
+                        button.btn.btn-primary(type='submit' name='update' value=`${book.name}`) Add to Cart
