@@ -181,17 +181,6 @@ app.post("/cart", async(req,res)=>{
     }
 })
 
-
-app.get("/storeorders", async(req,res)=>{
-    try{
-        //const allBooks = await pool.query("SELECT * FROM book");
-        res.json("storeorders");
-    }
-    catch (err){
-        console.error(err.message);
-    }
-})
-
 app.get("/tracking", async(req,res)=>{
     try{
         //const allBooks = await pool.query("SELECT * FROM book");
@@ -201,6 +190,104 @@ app.get("/tracking", async(req,res)=>{
         console.error(err.message);
     }
 })
+
+
+app.get("/admin", async(req,res)=>{
+    try{
+        //const allBooks = await pool.query("SELECT * FROM book");
+        res.render("pages/admin", {
+        });
+    }
+    catch (err){
+        console.error(err.message);
+    }
+})
+
+app.get("/reports", async(req,res)=>{
+    try{
+        //const allBooks = await pool.query("SELECT * FROM book");
+        res.json("sales");
+    }
+    catch (err){
+        console.error(err.message);
+    }
+})
+
+app.get("/orders", async(req,res)=>{
+    try{
+        //const allBooks = await pool.query("SELECT * FROM book");
+        res.json("storeorders");
+    }
+    catch (err){
+        console.error(err.message);
+    }
+})
+
+
+app.get("/addbook", async(req,res)=>{
+    try{
+        //const allBooks = await pool.query("SELECT * FROM book");
+        //res.json("sales");
+        success =  req.query.success
+
+        res.render("pages/addbook", {
+            success : success
+        });
+    }
+    catch (err){
+        console.error(err.message);
+    }
+})
+
+app.post("/addbook", async(req,res)=>{
+    try{
+        book_title = req.body.book_title
+        authors = req.body.authors
+        isbn = parseInt(req.body.isbn)
+        publisher = req.body.publisher
+        price = parseFloat(req.body.price)
+        cover_image = null
+        if(req.body.cover_image){
+            cover_image = req.body.cover_image
+        }
+        const addBook = await pool.query("insert into book values($1, $2, $3, $4, $5)",[isbn,book_title, authors,price,cover_image])
+        res.redirect("/addbook?success=true")
+    }
+    catch (err){
+        res.redirect("/addbook?success=false")
+        console.error(err.message);
+    }
+})
+
+app.get("/removebook", async(req,res)=>{
+    try{
+        //const allBooks = await pool.query("SELECT * FROM book");
+        success =  req.query.success
+        res.render("pages/removebook", {
+            success : success
+        });
+    }
+    catch (err){
+        console.error(err.message);
+    }
+})
+
+app.post("/removebook", async(req,res)=>{
+    try{
+        book_title = req.body.book_title
+        isbn = parseInt(req.body.isbn)
+        if(req.body.cover_image){
+            cover_image = req.body.cover_image
+        }
+        const addBook = await pool.query("delete from book where isbn=$1 and name=$2",[isbn,book_title])
+        res.redirect("/removebook?success=true")
+    }
+    catch (err){
+        res.redirect("/removebook?success=false")
+        console.error(err.message);
+    }
+})
+
 
 app.listen(3000, () => {
     console.log("server running on port 3000");

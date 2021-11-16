@@ -1,0 +1,32 @@
+html
+    head
+        title Look Inna Book BookStore
+        include ./adminHeader.pug
+    body
+        h1 Add a Book To The Store
+        form(action='/addbook' method='post')
+            p Please fill in this form to add a book to the store
+            .form-row
+                .form-group.col-md-6
+                    label(for='book_title') Book Title
+                    input#book_title.form-control(type='text' placeholder='Somehow I Manage' name="book_title" required)
+                .form-group.col-md-6
+                    label(for='authors') Author(s) Name(s) Comma Seperated
+                    input#authors.form-control(type='text' placeholder='Michael Scott' name="authors" required)
+                .form-group.col-md-6
+                    label(for='isbn') Book ISBN
+                    input#isbn.form-control(type='text' placeholder='123-456789' name="isbn" required)   
+                .form-group.col-md-6
+                    label(for='publisher') Name of Publisher 
+                    input#publsher.form-control(type='text' placeholder='Owl Books' name="publisher" required)
+                .form-group.col-md-6
+                    label(for='price') Book Price
+                    input#price.form-control(type='text' placeholder='17.99' name="price" required)
+                .form-group.col-md-6
+                    label(for='cover_image') (Optional) Link to Book Cover Image
+                    input#price.form-control(type='text' name="cover_image")
+                button.btn.btn-primary(type='submit') Add Book 
+        if success && success == 'false'
+            h3 Sorry, unable to add book to the store.
+        else if success && success == 'true'          
+            h3 Book successfully added!
