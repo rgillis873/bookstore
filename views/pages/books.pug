@@ -12,6 +12,10 @@ html
                         input.form-control.mr-sm-2(type='search' placeholder='Search Books By Name' name='book_name')
                         br
                         br
+                        input(type='checkbox'  name='exact_match' value='false' oninput='this.value = this.value == true?false:true')
+                        label(for='exact_match') Exact Name Match
+                        br
+                        br
                         input.form-control.mr-sm-2(type='search' placeholder='Search Books By ISBN' name='book_isbn')
                         br
                         br

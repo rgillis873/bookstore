@@ -1,0 +1,11 @@
+html
+    head
+        title Look Inna Book BookStore
+        include ./header.pug
+        script(src='/js/tracking.js')
+    body
+    h2 Track an Order
+    form(id="tracking_form" onsubmit="getTrackingPage()") 
+        label(for='orderid') Enter Order Id
+        input#orderid.form-control(type='text' placeholder='18005882300' name="orderid" required)   
+        button.btn.btn-primary(type='submit') Track Order

@@ -184,12 +184,47 @@ app.post("/cart", async(req,res)=>{
 app.get("/tracking", async(req,res)=>{
     try{
         //const allBooks = await pool.query("SELECT * FROM book");
-        res.json("tracking");
+        user_name = req.session.user_name
+        res.render("pages/tracking", {
+            userName: user_name
+        });
     }
     catch (err){
         console.error(err.message);
     }
 })
+
+app.get("/tracking/:orderid", async(req,res)=>{
+    tracking_info = {}
+    tracking_info['exists'] = false
+    try{
+        orderid = parseInt(req.params.orderid)
+        const getTrackingInfo = await pool.query("SELECT * FROM shipping where order_id = $1",[orderid]);
+        tracking_info.exists = true
+        tracking_info['details'] = getTrackingInfo.rows
+        console.log(tracking_info)
+        user_name = req.session.user_name
+        if(getTrackingInfo.rows.length > 0){
+            res.render("pages/tracking_info", {
+                userName: user_name,
+                trackingInfo: tracking_info
+            });
+        }else{
+            res.render("pages/tracking_info", {
+                userName: user_name,
+                orderId: orderid
+            });    
+        }
+    }
+    catch (err){
+        console.error(err.message);
+        res.render("pages/tracking_info", {
+            userName: user_name,
+            orderId: orderid
+        });
+    }
+})
+
 
 
 app.get("/admin", async(req,res)=>{
