@@ -7,6 +7,6 @@ html
         h2 Tracking Info for Order ##{trackingInfo.details[0].order_id}
         h4 Date of Order: #{trackingInfo.details[0].date_of_order}
         h4 Current Location of Order: #{trackingInfo.details[0].current_city}, #{trackingInfo.details[0].current_province}
-        h4 Estimated Time til Arrival: #{trackingInfo.details[0].days_til_arrival}
+        h4 Estimated Time til Arrival: #{trackingInfo.details[0].days_til_arrival} days
     else
         h2 Unable to find Order # #{orderId} in our system

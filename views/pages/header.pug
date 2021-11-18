@@ -16,22 +16,22 @@ nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
 			a.nav-link(href='/checkout') Checkout
 		li.nav-item
 			a.nav-link(href='/tracking') Track Order
+	ul.navbar-nav.mr-auto.mt-2.mt-lg-0
 		if userName
-			p.text-secondary Logged in as: #{userName}
-			br
-			br
-			if userName == "admin"
-				li.nav-item
-					a.nav-link(href='/sales') Sales
-				li.nav-item
-					a.nav-link(href='/storeorders') Store Orders	
+			li.nav-item
+				form.form-inline.my-2.my-lg-0(action="/signout" method="post")
+					.d-inline.text-white Currently Logged in as: #{userName}
+					|
+					|
+					button.btn.btn-outline-success.my-2.my-sm-0(type="submit") Sign Out
 		else
-			form.form-inline.my-2.my-lg-0(action="/signin" method="post")
-				label(for='user_name' style="color:white")
-					b Username
-				input.form-control.mr-sm-2(type="text" name="user_name" required)
-				|
-				label(for='pass_word' style="color:white")
-					b Password
-				input.form-control.mr-sm-2(type="password" name="pass_word" required)
-				button.btn.btn-outline-success.my-2.my-sm-0(type="submit") Sign In
+			li.nav-item
+				form.form-inline.my-2.my-lg-0(action="/signin" method="post")
+					label(for='user_name' style="color:white")
+						b Username
+					input.form-control.mr-sm-2(type="text" name="user_name" required)
+					|
+					label(for='pass_word' style="color:white")
+						b Password
+					input.form-control.mr-sm-2(type="password" name="pass_word" required)
+					button.btn.btn-outline-success.my-2.my-sm-0(type="submit") Sign In

@@ -3,25 +3,70 @@ html
         title Look Inna Book BookStore
         include ./header.pug
     body
-        .col.justify-content-center(style='width= 100%')
-            .card(style='width: 30%;')
-                //img.card-img-top(src='/images/open-book.png' alt='book')
-                img.card-img-top(src=`${book.book_image}` alt='book')
-                .card-body
-                    h5.card-title #{book.name}
-                    p.card-text
-                        | This is a book description
+        .card.justify-content-center(style='width: 80%; margin: 50px auto;')
+            .card-body.text-center
+                if book.book_image
+                    img.card-img-top.text-center(src=`${book.book_image}` alt='book' style='width: 15%; height:15% ')
+                else
+                    img.card-img-top.text-center(src='/images/open-book.png' alt='book' style='width: 15%; height:15% ')
+            .card-body
+                h5.card-title #{book.name}
+                p.card-text
+                    | This is a book description
+            ul.list-group.list-group-flush
+                li.list-group-item Rating:
+                li.list-group-item Author(s): #{book.author}
+                li.list-group-item Pages: 
+                li.list-group-item Publisher: 
+                li.list-group-item ISBN: #{book.isbn}
+                li.list-group-item Price: $#{book.price}
+                li.list-group-item Genre(s)
+            .card-body
+                form(action='/cart' method='post')
+                    input#quantity(type='number' name='quantity' min='1' value='1')
+                    |
+                    |
+                    button.btn.btn-primary(type='submit' name='update' value=`${book.name}`) Add to Cart
+        .card.justify-content-center(style='width: 80%; margin: 50px auto;max-height: 500px;overflow:auto')
+            .card-body
+                h5.card-title Reviews
+            ul.list-group.list-group-flush
+                for review in reviews
+                    li.list-group-item
+                        p.card-text
+                        | Rating: #{review.rating}/5
+                        br
+                        p.card-text
+                        | Comment:
+                        br
+                        | #{review.comment}
+                        br
+                        if review.name
+                            p.card-text
+                            | - #{review.name}
+                        else
+                            p.card-text
+                            | -Anonymous
+        .card.justify-content-center(style='width: 80%; margin: 50px auto;')
+            .card-body
+                h5.card-title Add a Review
+            form(action='/review' method='post')
                 ul.list-group.list-group-flush
-                    li.list-group-item Genre:
-                    li.list-group-item Author(s): #{book.author}
-                    li.list-group-item Pages: 
-                    li.list-group-item Publisher: 
-                    li.list-group-item ISBN: #{book.isbn}
-                    li.list-group-item Price: #{book.price}
-                    li.list-group-item Rating:
-                .card-body
-                    form(action='/cart' method='post')
-                        input#quantity(type='number' name='quantity' min='1' value='1')
-                        |
-                        |
-                        button.btn.btn-primary(type='submit' name='update' value=`${book.name}`) Add to Cart
+                    li.list-group-item
+                        label(for='review_name')
+                        | Name (Optional)
+                        br
+                        input#review_name(type='text' name='review_name')
+                    li.list-group-item
+                        label(for='review_comment')
+                        | Comment
+                        br
+                        textarea#review_comment(rows='3' placeholder='Your thoughts?' name='review_comment' required style='width: 100%')
+                    li.list-group-item
+                        label(for='review_rating')
+                        | Rating
+                        br
+                        input#review_comment(type='number' name='review_rating' min='1' max='5' value='5' required)
+                    li.list-group-item
+                        button.btn.btn-primary(type='submit' name='review_isbn' value=`${book.isbn}`) Submit Review
+                

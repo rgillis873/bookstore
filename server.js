@@ -49,10 +49,47 @@ app.get("/books/:isbn", async(req,res)=>{
     try{
         const bookInfo = await pool.query("SELECT * FROM book where isbn=$1",[parseInt(req.params.isbn)]);
         console.log(bookInfo.rows);
+        reviews = []
+        review = {
+            rating: 3.5,
+            comment: "This was an ok book",
+            name: "Pippin Gillis"
+        }
+        review_two = {
+            rating: 1.5,
+            comment: "This was trash",
+            name: "Snowball"
+        }
+        review_three = {
+            rating: 5,
+            comment: "Can't read but cover looks nice"
+        }
+        reviews.push(review)
+        reviews.push(review_two)
+        reviews.push(review_three)
+
         res.render("pages/book", {
             userName : req.session.user_name,
-            book: bookInfo.rows[0]
+            book: bookInfo.rows[0],
+            reviews: reviews
         });
+    }
+    catch (err){
+        console.error(err.message);
+    }
+})
+
+app.post("/review", async(req,res)=>{
+    try{
+        //const allBooks = await pool.query("SELECT * FROM book");
+        review = req.body
+        reviewer = review.name ? review.name:null
+        comment = review.comment
+        rating = review.rating
+        isbn = review.isbn
+        url = '/books/'+isbn
+        //const addReview = await pool.query('insert into review values($1,$2,$3,$4)',[reviewer,comment,rating,isbn])
+        res.redirect(url)
     }
     catch (err){
         console.error(err.message);
@@ -99,6 +136,18 @@ app.post("/signin", async(req,res)=>{
         //need to handle if username/password is not correct
         console.log(req.body.user_name)
         req.session.user_name = req.body.user_name
+        res.redirect("back");
+    }
+    catch (err){
+        console.error(err.message);
+    }
+})
+
+app.post("/signout", async(req,res)=>{
+    try{
+        //check if username is valid
+        //need to handle if username/password is not correct
+        req.session.user_name = null
         res.redirect("back");
     }
     catch (err){
