@@ -8,23 +8,56 @@ html
             p Please fill in this form to add a book to the store
             .form-row
                 .form-group.col-md-6
-                    label(for='book_title') Book Title
-                    input#book_title.form-control(type='text' placeholder='Somehow I Manage' name="book_title" required)
+                    label(for='book_name') Book Name
+                    input#book_name.form-control(type='text' placeholder='Somehow I Manage' maxlength='100' name="book_name" required)
                 .form-group.col-md-6
                     label(for='authors') Author(s) Name(s) Comma Seperated
-                    input#authors.form-control(type='text' placeholder='Michael Scott' name="authors" required)
+                    input#authors.form-control(type='text' placeholder='Michael Scott' name="authors" maxlength='100' required)
                 .form-group.col-md-6
                     label(for='isbn') Book ISBN
-                    input#isbn.form-control(type='text' placeholder='123-456789' name="isbn" required)   
-                .form-group.col-md-6
-                    label(for='publisher') Name of Publisher 
-                    input#publsher.form-control(type='text' placeholder='Owl Books' name="publisher" required)
+                    input#isbn.form-control(type='text' placeholder='123-456789' name="isbn" maxlength='20' required)
                 .form-group.col-md-6
                     label(for='price') Book Price
                     input#price.form-control(type='text' placeholder='17.99' name="price" required)
                 .form-group.col-md-6
+                    label(for='genres') Genre(s) (Comma Seperated)
+                    input#genres.form-control(type='text' placeholder='Comedy,Horror' name="genres" maxlength='100' required)
+                .form-group.col-md-6
+                    label(for='description') (Optional) Book Description Image
+                    input#cover_image.form-control(type='text' name="description" maxlength='1000')
+                .form-group.col-md-6
                     label(for='cover_image') (Optional) Link to Book Cover Image
-                    input#price.form-control(type='text' name="cover_image")
+                    input#cover_image.form-control(type='text' name="cover_image" maxlength='500')   
+                .form-group.col-md-6
+                    label(for='publisher_name') Name of Publisher 
+                    input#publisher_name.form-control(type='text' placeholder='Owl Books' name="publisher_name" maxlength='100' required)
+                .form-group.col-md-6
+                    label(for='publisher_address') Publisher Street Number and Name
+                    input#publisher_street_name.form-control(type='text' placeholder='9 Derby Ln.' name="publisher_street_name" maxlength='40' required)
+                .form-group.col-md-6
+                    label(for='publisher_city') Publisher City
+                    input#publisher_city.form-control(type='text' placeholder='Sarnia' name="publisher_city" maxlength='30' required)
+                .form-group.col-md-6
+                    label(for='publisher_province') Publisher Province
+                    input#publisher_province.form-control(type='text' placeholder='Ontario' name="publisher_province" maxlength='30' required)
+                .form-group.col-md-6
+                    label(for='publisher_country') Publisher Country
+                    input#publisher_country.form-control(type='text' placeholder='Canada' name="publisher_country" maxlength='30' required)
+                .form-group.col-md-6
+                    label(for='publisher_post') Publisher Postal Code
+                    input#publisher_post.form-control(type='text' placeholder='N84-2W3' name="publisher_post" maxlength='7' required)
+                .form-group.col-md-6
+                    label(for='publisher_email') Publisher Email 
+                    input#publisher_email.form-control(type='email' placeholder='hello@goodbye.com' name="publisher_email" maxlength='50' required)
+                .form-group.col-md-6
+                    label(for='publisher_phone') Publisher Phone Number(s) (Comma Seperated) 
+                    input#publisher_email.form-control(type='text' placeholder='123-456-7891' name="publisher_phone" maxlength='52' required)
+                .form-group.col-md-6
+                    label(for='publisher_account') Publisher Account Number 
+                    input#publisher_account.form-control(type='text' placeholder='123444' name="publisher_account" maxlength='15' required)
+                .form-group.col-md-6
+                    label(for='publisher_percent') Publisher Sales Tax Percent 
+                    input#publisher_percent.form-control(type='number' value='1' min='1' max='100' name="publisher_percent" required)
                 button.btn.btn-primary(type='submit') Add Book 
         if success && success == 'false'
             h3 Sorry, unable to add book to the store.

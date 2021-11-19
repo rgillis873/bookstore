@@ -31,22 +31,27 @@ html
             .card-body
                 h5.card-title Reviews
             ul.list-group.list-group-flush
-                for review in reviews
+                if reviews
+                    for review in reviews
+                        li.list-group-item
+                            p.card-text
+                            | Rating: #{review.rating}/5
+                            br
+                            p.card-text
+                            | Comment:
+                            br
+                            | #{review.comment}
+                            br
+                            if review.name
+                                p.card-text
+                                | - #{review.name}
+                            else
+                                p.card-text
+                                | -Anonymous
+                else
                     li.list-group-item
                         p.card-text
-                        | Rating: #{review.rating}/5
-                        br
-                        p.card-text
-                        | Comment:
-                        br
-                        | #{review.comment}
-                        br
-                        if review.name
-                            p.card-text
-                            | - #{review.name}
-                        else
-                            p.card-text
-                            | -Anonymous
+                            | Be the first to add a review for this book
         .card.justify-content-center(style='width: 80%; margin: 50px auto;')
             .card-body
                 h5.card-title Add a Review
@@ -54,14 +59,14 @@ html
                 ul.list-group.list-group-flush
                     li.list-group-item
                         label(for='review_name')
-                        | Name (Optional)
+                        | Name (30 Character Limit)
                         br
-                        input#review_name(type='text' name='review_name')
+                        input#review_name(type='text' name='review_name' maxlength='30' required)
                     li.list-group-item
                         label(for='review_comment')
-                        | Comment
+                        | Comment (300 Character Limit)
                         br
-                        textarea#review_comment(rows='3' placeholder='Your thoughts?' name='review_comment' required style='width: 100%')
+                        textarea#review_comment(rows='3' placeholder='Your thoughts?' name='review_comment' maxlength='300' required style='width: 100%')
                     li.list-group-item
                         label(for='review_rating')
                         | Rating

@@ -71,7 +71,7 @@ app.get("/books/:isbn", async(req,res)=>{
         res.render("pages/book", {
             userName : req.session.user_name,
             book: bookInfo.rows[0],
-            reviews: reviews
+            reviews: null
         });
     }
     catch (err){
@@ -81,13 +81,12 @@ app.get("/books/:isbn", async(req,res)=>{
 
 app.post("/review", async(req,res)=>{
     try{
-        //const allBooks = await pool.query("SELECT * FROM book");
         review = req.body
-        reviewer = review.name ? review.name:null
-        comment = review.comment
-        rating = review.rating
-        isbn = review.isbn
-        url = '/books/'+isbn
+        reviewer = review.review_name
+        comment = review.review_comment
+        rating = review.review_rating
+        url = '/books/'+review.review_isbn
+        isbn = parseInt(review.review_isbn)
         //const addReview = await pool.query('insert into review values($1,$2,$3,$4)',[reviewer,comment,rating,isbn])
         res.redirect(url)
     }
