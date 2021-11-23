@@ -5,28 +5,28 @@ html
     body
         .card.justify-content-center(style='width: 80%; margin: 50px auto;')
             .card-body.text-center
-                if book.book_image
-                    img.card-img-top.text-center(src=`${book.book_image}` alt='book' style='width: 15%; height:15% ')
+                if book && book.cover_image
+                    img.card-img-top.text-center(src=`${book.cover_image}` alt='book' style='width: 15%; height:15% ')
                 else
                     img.card-img-top.text-center(src='/images/open-book.png' alt='book' style='width: 15%; height:15% ')
             .card-body
                 h5.card-title #{book.name}
                 p.card-text
-                    | This is a book description
+                    | #{book.description}
             ul.list-group.list-group-flush
                 li.list-group-item Rating:
-                li.list-group-item Author(s): #{book.author}
-                li.list-group-item Pages: 
-                li.list-group-item Publisher: 
+                li.list-group-item Author(s): #{book.authors}
+                li.list-group-item Pages: #{book.page_num}
+                li.list-group-item Publisher: #{book.pub_name}
                 li.list-group-item ISBN: #{book.isbn}
                 li.list-group-item Price: $#{book.price}
-                li.list-group-item Genre(s)
+                li.list-group-item Genre #{book.genre}
             .card-body
                 form(action='/cart' method='post')
                     input#quantity(type='number' name='quantity' min='1' value='1')
                     |
                     |
-                    button.btn.btn-primary(type='submit' name='update' value=`${book.name}`) Add to Cart
+                    button.btn.btn-primary(type='submit' name='update' value=`${book.isbn}`) Add to Cart
         .card.justify-content-center(style='width: 80%; margin: 50px auto;max-height: 500px;overflow:auto')
             .card-body
                 h5.card-title Reviews

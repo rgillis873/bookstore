@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser")
 const bodyParser = require("body-parser")
 const pool = require("./db");
 const { request } = require("express");
+const helperFunctions = require ("./serverHelpers"); 
 
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended:true}));
@@ -28,14 +29,18 @@ app.get("/", async(req, res)=>{
 
 app.get("/books", async(req,res)=>{
     try{
-        const allBooks = await pool.query("SELECT * FROM book");
-        //res.json(allBooks.rows);
+        bookSearch = helperFunctions.buildWhereString(req.query);
+        const getGenres = await pool.query("SELECT distinct genre FROM book");
+        const getAuthors = await pool.query("SELECT auth_name FROM author"); 
+        const allBooks = await pool.query(bookSearch);
         if(req.session.user_name){
             console.log(req.session.user_name);
         }
         console.log(req.query)
         res.render("pages/books", {
             userName : req.session.user_name,
+            genres: getGenres.rows,
+            authors: getAuthors.rows,
             books: allBooks.rows
         });
     }
@@ -47,8 +52,8 @@ app.get("/books", async(req,res)=>{
 app.get("/books/:isbn", async(req,res)=>{
     console.log(req.params);
     try{
-        const bookInfo = await pool.query("SELECT * FROM book where isbn=$1",[parseInt(req.params.isbn)]);
-        console.log(bookInfo.rows);
+        const bookInfo = await pool.query("SELECT * FROM bookPage where isbn=$1",[req.params.isbn]);
+        console.log(bookInfo.rows[0]);
         reviews = []
         review = {
             rating: 3.5,

@@ -6,13 +6,13 @@ html
 
         .container-fluid
             .row
-                .col-sm-2(style='background-color:slategrey; min-height:100%')
+                .col-sm-2(style='background-color:slategrey; min-height:100%;')
                     h4.mb-3 Search Books
                     form.form-inline.my-2.my-lg-0(action='/books' method='get')
                         input.form-control.mr-sm-2(type='search' placeholder='Search Books By Name' name='book_name')
                         br
                         br
-                        input(type='checkbox'  name='exact_match' value='false' oninput='this.value = this.value == true?false:true')
+                        input(type='checkbox'  name='exact_match' value='false' oninput='this.value = this.value == `true`?false:true')
                         label(for='exact_match') Exact Name Match
                         br
                         br
@@ -20,24 +20,15 @@ html
                         br
                         br
                         select.form-select(aria-label='Genre' name='genre')
-                            option(selected='') Select a Genre
-                            option(value='1') One
-                            option(value='2') Two
-                            option(value='3') Three
+                            option(selected value='') Select a Genre
+                            for genre in genres
+                                option(value=`${genre.genre}`) #{genre.genre}
                         br
                         br
                         select.form-select(aria-label='Author' name='author')
-                            option(selected='') Select an Author
-                            option(value='1') One
-                            option(value='2') Two
-                            option(value='3') Three
-                        br
-                        br
-                        select.form-select(aria-label='Publisher' name='publisher')
-                            option(selected='') Select a Publisher
-                            option(value='1') One
-                            option(value='2') Two
-                            option(value='3') Three
+                            option(selected value='') Select an Author
+                            for author in authors
+                                option(value=`${author.auth_name}`) #{author.auth_name}
                         br
                         br
                         row.col-md-6(style='text-align: left;')
@@ -49,14 +40,21 @@ html
                         row.col-md-12
                             button.btn.btn-primary-success.my-2.my-sm-0(type='submit') Search
                     
-
-                .col-sm-10(id="two" class="book_holder" style="display:flex; flex-wrap:wrap;")
-                    .card-deck
-                    each book in books
-                        .card(style='width: 18rem;')
-                            img.card-img-top(src='/images/open-book.png' alt=`${book.name}`)
-                            .card-body
-                                h5.card-title #{book.name}
-                                p.card-text
-                                    | Author(s): #{book.author}
-                                a.btn.btn-primary(href=`/books/${book.isbn}`) View Book
+                if books.length
+                    .col-sm-10(id="two" class="book_holder" style="display:flex; flex-wrap:wrap;")
+                        .card-deck
+                        each book in books
+                            .card(style='width: 18rem;')
+                                //img.card-img-top(src='/images/open-book.png' alt=`${book.name}`)
+                                img.card-img-top(src=`${book.cover_image}` alt=`${book.name}` style="height:200px")
+                                .card-body
+                                    h5.card-title #{book.name}
+                                    p.card-text
+                                        | Author(s): #{book.authors}
+                                    p.card-text
+                                        | Genre: #{book.genre}
+                                    p.card-text
+                                        | Price: $#{book.price} 
+                                    a.btn.btn-primary(href=`/books/${book.isbn}`) View Book
+                else
+                    h4 Sorry, no books match those search criteria

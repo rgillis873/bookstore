@@ -5,11 +5,8 @@ html
     body
         h1 Remove a Book From The Store
         form(action='/removebook' method='post')
-            p Please fill in the title and ISBN of the book you wish to remove 
+            p Please fill in the Book ISBN of the book you wish to remove 
             .form-row
-                .form-group.col-md-6
-                    label(for='book_title') Book Title
-                    input#book_title.form-control(type='text' placeholder='Somehow I Manage' name="book_title" required)
                 .form-group.col-md-6
                     label(for='isbn') Book ISBN
                     input#isbn.form-control(type='text' placeholder='123-456789' name="isbn" required)   
