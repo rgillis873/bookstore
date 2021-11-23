@@ -31,6 +31,7 @@ create table book(
 	stock int default 20,
 	pub_id int not null,
 	pub_percent int not null,
+	isRemoved boolean default FALSE,
 	primary key(isbn),
 	foreign key(pub_id) references publisher(pub_id)
 );
@@ -123,7 +124,7 @@ create table sale(
 	sale_id serial not null,
 	quantity int not null,
 	sale_date date,
-	isbn varchar(10) not null,
+	isbn varchar(13) not null,
 	order_id int not null,
 	primary key(sale_id),
 	foreign key(isbn) references book(isbn),
@@ -207,3 +208,4 @@ create view bookPage as
 	select isbn,name,price,genre,cover_image,description,page_num,pub_name, string_agg(auth_name, ',') as authors
 	from (((book natural join book_auth) natural join author) natural join publisher)
 	group by isbn,pub_name;
+

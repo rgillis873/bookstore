@@ -1,0 +1,9 @@
+html
+    head
+        title Look Inna Book BookStore
+        include ./header.pug
+    body
+        if userName
+            h3 Successfully Registered as #{userName}
+        else
+            h3 Sorry that username is already in use.Please try to register again.

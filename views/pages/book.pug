@@ -14,7 +14,7 @@ html
                 p.card-text
                     | #{book.description}
             ul.list-group.list-group-flush
-                li.list-group-item Rating:
+                li.list-group-item Rating: #{bookRating}
                 li.list-group-item Author(s): #{book.authors}
                 li.list-group-item Pages: #{book.page_num}
                 li.list-group-item Publisher: #{book.pub_name}
@@ -27,31 +27,28 @@ html
                     |
                     |
                     button.btn.btn-primary(type='submit' name='update' value=`${book.isbn}`) Add to Cart
-        .card.justify-content-center(style='width: 80%; margin: 50px auto;max-height: 500px;overflow:auto')
-            .card-body
-                h5.card-title Reviews
-            ul.list-group.list-group-flush
-                if reviews
-                    for review in reviews
-                        li.list-group-item
-                            p.card-text
-                            | Rating: #{review.rating}/5
-                            br
-                            p.card-text
-                            | Comment:
-                            br
-                            | #{review.comment}
-                            br
-                            if review.name
+        .div(style='width: 80%; margin: 50px auto;max-height: 500px;overflow:auto')
+            .card.justify-content-center
+                .card-body
+                    h5.card-title Reviews
+                    ul.list-group.list-group-flush
+                        if reviews && reviews.length
+                            for review in reviews
+                                li.list-group-item
+                                    p.card-text
+                                    | Rating: #{review.rating}/5
+                                    br
+                                    p.card-text
+                                    | Comment:
+                                    br
+                                    | #{review.comment}
+                                    br
+                                    p.card-text
+                                    | - #{review.name}
+                        else
+                            li.list-group-item
                                 p.card-text
-                                | - #{review.name}
-                            else
-                                p.card-text
-                                | -Anonymous
-                else
-                    li.list-group-item
-                        p.card-text
-                            | Be the first to add a review for this book
+                                    | Be the first to add a review for this book
         .card.justify-content-center(style='width: 80%; margin: 50px auto;')
             .card-body
                 h5.card-title Add a Review

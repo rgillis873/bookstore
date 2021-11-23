@@ -52,31 +52,23 @@ app.get("/books", async(req,res)=>{
 app.get("/books/:isbn", async(req,res)=>{
     console.log(req.params);
     try{
-        const bookInfo = await pool.query("SELECT * FROM bookPage where isbn=$1",[req.params.isbn]);
-        console.log(bookInfo.rows[0]);
-        reviews = []
-        review = {
-            rating: 3.5,
-            comment: "This was an ok book",
-            name: "Pippin Gillis"
+        isbn = req.params.isbn
+        console.log(isbn)
+        const bookInfo = await pool.query("SELECT * FROM bookPage where isbn=$1",[isbn])
+        const reviewInfo = await pool.query("SELECT * FROM review where isbn=$1",[isbn])
+        const getRating = await pool.query("SELECT * FROM avg_rating($1)",[isbn])
+        console.log(getRating.rows)
+        avgRating = ''
+        if(getRating.rows.length == 0 || getRating.rows[0].avg_rating == null){
+            avgRating = 'N/A'
+        }else{
+            avgRating = getRating.rows[0].avg_rating.toString()+"/5"
         }
-        review_two = {
-            rating: 1.5,
-            comment: "This was trash",
-            name: "Snowball"
-        }
-        review_three = {
-            rating: 5,
-            comment: "Can't read but cover looks nice"
-        }
-        reviews.push(review)
-        reviews.push(review_two)
-        reviews.push(review_three)
-
         res.render("pages/book", {
             userName : req.session.user_name,
             book: bookInfo.rows[0],
-            reviews: null
+            reviews: reviewInfo.rows,
+            bookRating: avgRating
         });
     }
     catch (err){
@@ -88,11 +80,11 @@ app.post("/review", async(req,res)=>{
     try{
         review = req.body
         reviewer = review.review_name
-        comment = review.review_comment
+        comment = JSON.stringify(review.review_comment)
         rating = review.review_rating
-        url = '/books/'+review.review_isbn
-        isbn = parseInt(review.review_isbn)
-        //const addReview = await pool.query('insert into review values($1,$2,$3,$4)',[reviewer,comment,rating,isbn])
+        isbn = review.review_isbn
+        url = '/books/'+isbn
+        const addReview = await pool.query('insert into review(name,comment,rating,isbn) values($1,$2,$3,$4)',[reviewer,comment,rating,isbn])
         res.redirect(url)
     }
     catch (err){
@@ -112,6 +104,23 @@ app.get("/register", async(req,res)=>{
     }
 })
 
+app.get("/registrationresult", async(req,res)=>{
+    try{
+        //const allBooks = await pool.query("SELECT * FROM book");
+        user_name = null
+        if(req.session.user_name){
+            user_name = req.session.user_name
+        }
+        res.render("pages/registrationresult", {
+            userName : user_name
+        });
+    }
+    catch (err){
+        console.error(err.message);
+    }
+})
+
+
 app.post("/register", async(req,res)=>{
     try{
         let first_name = req.body.first_name;
@@ -119,18 +128,17 @@ app.post("/register", async(req,res)=>{
         let email = req.body.email;
         let user_name = req.body.user_name;
         let user_pass = req.body.user_pass;
-        console.log(req.body)
-        if(user_name && email){
-            const addUser = await pool.query("Insert into site_user(first_name, last_name, email, user_name, user_pass) values($1, $2, $3, $4, $5)"
+        const addUser = await pool.query("Insert into store_user(first_name, last_name, email, username, user_pass) values($1, $2, $3, $4, $5)"
             , [first_name, last_name, email, user_name, user_pass]);
+        if(addUser.rowCount > 0){
             req.session.user_name = user_name;
-            res.redirect("/books")
-        }else{
-            res.json("Already have a user with that name")
+            //res.redirect("/books")
+            res.redirect("/registrationresult")
         }
     }
     catch (err){
         console.error(err.message);
+        res.redirect("/registrationresult")
     }
 })
 
@@ -138,9 +146,26 @@ app.post("/signin", async(req,res)=>{
     try{
         //check if username is valid
         //need to handle if username/password is not correct
-        console.log(req.body.user_name)
-        req.session.user_name = req.body.user_name
-        res.redirect("back");
+        username = req.body.user_name
+        password = req.body.pass_word
+        checkSignIn = await pool.query("SELECT * FROM store_user where username=$1 and user_pass=$2",[username,password]);
+        if(checkSignIn.rows.length > 0){
+            req.session.user_name = username
+            res.redirect("back");
+        }else{
+            res.redirect("/failedsignin")
+        }
+    }
+    catch (err){
+        console.error(err.message);
+    }
+})
+
+app.get("/failedsignin", async(req,res)=>{
+    try{
+        res.render("pages/failedsignin",{
+
+        });
     }
     catch (err){
         console.error(err.message);
@@ -329,17 +354,57 @@ app.get("/addbook", async(req,res)=>{
 
 app.post("/addbook", async(req,res)=>{
     try{
-        book_title = req.body.book_title
-        authors = req.body.authors
-        isbn = parseInt(req.body.isbn)
-        publisher = req.body.publisher
-        price = parseFloat(req.body.price)
-        cover_image = null
-        if(req.body.cover_image){
-            cover_image = req.body.cover_image
+        //Get publisher info
+        pub_name = req.body.publisher_name
+        street_num_name = req.body.publisher_address
+        office_num = req.body.publisher_office
+        city = req.body.publisher_city
+        province = req.body.publisher_province
+        country = req.body.publisher_country
+        post_code = req.body.publisher_post
+        email = req.body.publisher_email
+        phone_num = req.body.publisher_phone
+        bank_account = req.body.publisher_account 
+
+        //Check if publisher already exists
+        checkPublisher = await pool.query("select * from publisher where pub_name=$1 and email=$2",[pub_name, email])
+        
+        //Add publisher if they don't exist
+        if(checkPublisher.rows.length == 0){
+            addPublisher = await pool.query("insert into publisher(pub_name,street_num_name,office_num,city,province,country,post_code"
+                +",email,bank_account",[pub_name,street_num_name,office_num,city,province,country,post_code,email,bank_account])
         }
-        const addBook = await pool.query("insert into book values($1, $2, $3, $4, $5)",[isbn,book_title, authors,price,cover_image])
+
+        //Get publisher id
+        getPublisherId = await pool.query("select pub_id from publisher where pub_name=$1 and email=$2",[pub_name,email])
+        pub_id = getPublisherId.rows[0]
+
+        //Add publisher phone numbers if it didn't already exist
+        if(checkPublisher.rows.length == 0){
+            for(phone in phone_num.split(',')){
+                addPhone = await pool.query("insert into phone values($1,$2)",[phone, pub_id])
+            }
+        }
+
+
+        //Get book information
+        book_name = req.body.book_name
+        authors = req.body.authors
+        isbn = req.body.isbn
+        price = parseFloat(req.body.price)
+        genre = req.body.genre
+        page_num = req.body.page_num
+        description = JSON.stringify(req.body.description)
+        pub_percent = parseInt(req.body.publisher_percent)
+        cover_image = req.body.cover_image
+        const addBook = await pool.query("insert into book(isbn,name,genre,price,description,cover_image,pub_id,pub_percent)"+
+        "values($1, $2, $3, $4, $5,$6,$7,$8)",[isbn,book_name,genre, price,description, cover_image, pub_id,pub_percent])
+        for(author in authors.split(",")){
+            const addAuthor = await pool.query("insert into author(auth_name) values($1)",[author])
+        }
+
         res.redirect("/addbook?success=true")
+
     }
     catch (err){
         res.redirect("/addbook?success=false")

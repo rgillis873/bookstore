@@ -31,5 +31,9 @@ module.exports = {
             }   
         }
         return select_string + from_string + where_string
+    },
+
+    buildPublisherString: function(query){
+        
     }
 }

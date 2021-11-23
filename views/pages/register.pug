@@ -9,20 +9,20 @@ html
             .form-row
                 .form-group.col-md-6
                     label(for='first_name') First Name
-                    input#first_name.form-control(type='text' placeholder='TJ' name="first_name" required)
+                    input#first_name.form-control(type='text' placeholder='TJ' name="first_name" maxlength='30' required)
                 .form-group.col-md-6
                     label(for='last_name') Last Name
-                    input#last_name.form-control(type='text' placeholder='Detweiler' name="last_name" required)
+                    input#last_name.form-control(type='text' placeholder='Detweiler' name="last_name" maxlength='30' required)
                 .form-group.col-md-6
                     label(for='email') Email
-                    input#email.form-control(type='email' placeholder='hello@goodbye.com' name="email" required)
+                    input#email.form-control(type='email' placeholder='hello@goodbye.com' name="email" maxlength='50' required)
             .form-row    
                 .form-group.col-md-6
                     label(for='user_name') Username
-                    input#user_name.form-control(type='text' placeholder='tj123' name="user_name" required)
+                    input#user_name.form-control(type='text' placeholder='tj123' name="user_name" maxlength='30' required)
                 .form-group.col-md-6
                     label(for='pass_word') Password
-                    input#pass_word.form-control(type='password' name="user_pass" required)
+                    input#pass_word.form-control(type='password' name="user_pass" maxlength='20' required)
             button.btn.btn-primary(type='submit') Register
         .container.signin
             p
