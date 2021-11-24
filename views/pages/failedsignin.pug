@@ -3,5 +3,9 @@ html
         title Look Inna Book BookStore
         include ./header.pug
     body
-        h4 Failed login
-        h3 Sorry that username or password was incorrect.Please try to login again.
+        if userName
+            h4 Successful Login
+            h3 You are now logged in as #{userName}
+        else
+            h4 Failed login
+            h3 Sorry that username or password was incorrect.Please try to login again.

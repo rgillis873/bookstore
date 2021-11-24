@@ -201,6 +201,7 @@ create table order_ship(
 create view booksAuthors as
 	select isbn,name,price,genre,cover_image, string_agg(auth_name, ',') as authors
 	from book natural join book_auth natural join author
+	where book.isremoved = false
 	group by isbn;
 
 --For viewing an individual book page
