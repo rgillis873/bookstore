@@ -150,6 +150,23 @@ app.post("/register", async(req,res)=>{
         //If successful, set the username and redirect to the registration result page
         if(addUser.rowCount > 0){
             req.session.user_name = user_name;
+
+            //Create cart for the user
+            createCart = await pool.query('insert into cart values(default) returning cart_id')
+            cart_id = createCart.rows[0].cart_id
+            
+            //Assign the cart to the user
+            assignCartToUser = await pool.query('insert into user_cart values($1,$2)',[cart_id,user_name])
+
+            //Assign the correct cart id to the logged in user
+            old_cart_id = req.session.cartId
+            req.session.cartId = cart_id
+
+            //Move items into the assigned cart for the user if there were any
+            if(old_cart_id){
+                changeCartItems = await pool.query('update book_cart set cart_id=$1 where cart_id=$2',[cart_id,old_cart_id])
+            }
+
             res.redirect("/registrationresult")
         }
     }
@@ -175,9 +192,15 @@ app.post("/signin", async(req,res)=>{
             req.session.user_name = username
             
             //If the user had cart items before logging in, merge them with
-            //the pre-existing items in the logged in user's cart
+            //the pre-existing items in the logged in user's cart and 
+            //assign a new cart number.Otherwise, get their cart id
             if(req.session.cartId){
-                //helperFunctions.mergeCarts(req.session.cartId, req.session.user_name)
+                console.log("merge problem")
+                req.session.cartId = await helperFunctions.mergeCarts(req.session.cartId, req.session.user_name)
+            }else{
+                console.log("here")
+                getCartIdForUser = await pool.query("select cart_id from user_cart where username=$1",[req.session.user_name])
+                req.session.cartId = getCartIdForUser.rows[0].cart_id    
             }
             
             res.redirect("back");
@@ -230,13 +253,16 @@ app.get("/sales", async(req,res)=>{
 
 app.get("/checkout", async(req,res)=>{
     try{
-        //const allBooks = await pool.query("SELECT * FROM book");
-        //res.json("checkout");
-        const getCartContents = await pool.query("SELECT * FROM cart");
-        user_name = req.session.user_name
+        //Only logged in users can checkout, so only get cart contents if they are logged in
+        //and have a cart
+        cartContents = null
+        if(req.session.user_name && req.session.cartId){
+            const getCartContents = await pool.query("SELECT * FROM getCartItems where cart_id=$1",[req.session.cartId]);
+            cartContents = getCartContents.rows
+        }
         res.render("pages/checkout", {
-            userName: user_name,
-            cart: getCartContents.rows
+            userName: req.session.user_name,
+            cart: cartContents
         });
     }
     catch (err){
@@ -246,8 +272,7 @@ app.get("/checkout", async(req,res)=>{
 
 app.post("/checkout", async(req,res)=>{
     try{
-        //const Contents = await pool.query("SELECT * FROM cart");
-        //empty cart, update book quantities, check if have enough
+        console.log(req.body)
 
         user_name = req.session.user_name
         res.render("pages/orderstatus", {
@@ -267,7 +292,7 @@ app.get("/cart", async(req,res)=>{
 
         //If the user has items in the cart
         if(req.session.cartId){
-            const getCartContents = await pool.query("SELECT * FROM book_cart where cart_id=$1",[req.session.cartId]);
+            const getCartContents = await pool.query("SELECT * FROM getCartItems where cart_id=$1",[req.session.cartId]);
             cartContents = getCartContents.rows
         }
         res.render("pages/cart", {
@@ -295,12 +320,20 @@ app.post("/cart", async(req,res)=>{
             isbn = req.body.remove
             const updateCartContents = await pool.query("delete from book_cart where isbn=$1 and cart_id=$2", [isbn,req.session.cartId]);
         }
+        else if(req.body.add){
+            isbn = req.body.add
+            new_quantity = req.body.quantity
+            console.log(req.session.cartId)
+            const addOrUpdateCartContents = await pool.query("insert into book_cart values($1,$2,$3) on conflict (cart_id,isbn) do update set"
+             +" quantity=book_cart.quantity+$3",[isbn, req.session.cartId, new_quantity]);
+        }
         //If user is updating the quantity of a book in their cart
         else if(req.body.update){
             isbn = req.body.update
             new_quantity = req.body.quantity
-            const updateCartContents = await pool.query("update book_cart set quantity=$1 where isbn=$2 and cart_id=$3",
-             [new_quantity, isbn, req.session.cartId]);
+            console.log(req.session.cartId)
+            const addOrUpdateCartContents = await pool.query("insert into book_cart values($1,$2,$3) on conflict (cart_id,isbn) do update set"
+             +" quantity=$3",[isbn, req.session.cartId, new_quantity]);
         }
         res.redirect("back")
     }

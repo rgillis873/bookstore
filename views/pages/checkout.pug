@@ -10,120 +10,142 @@ html
             p Store account required for checkout. Please sign in above or register at the link below before proceeding to the checkout 
             a(href="http://localhost:3000/register")="Register"
         else
-            h1 Current Cart Items
-            table.table
-                thead
-                    tr
-                        th(scope='col' style='width: 40%;') Book Name
-                        th(scope='col' style='width: 30%;') Quantity
-                        th(scope='col' style='width: 10%;') Price
-                        th(scope='col' style='width: 20%;') Remove Item
-                tbody
-                    for item in cart
+            if cart && cart.length
+                h1 Current Cart Items
+                table.table
+                    thead
                         tr
-                            th(scope='row') #{item.item}
-                            td
-                                form(action='/cart' method='post')
-                                    input#quantity(type='number' name='quantity' min='1' value=`${item.quantity}`)
-                                    |
-                                    |
-                                    button.btn.btn-primary(type='submit' name='update' value=`${item.item}`) Update Quantity
-                            td #{item.price}
-                            td
-                                form(action='/cart' method='post')
-                                    button.btn.btn-danger(type='submit' name='remove' value=`${item.item}`) Remove
-                    tr
-                        th(scope='row')
-                        td Current Subtotal 
-                        td 34.98
-                    tr
-                        th(scope='row')
-                        td HST
-                        td 5.75
-                    tr
-                        th(scope='row')
-                        td Total
-                        td 40.73
+                            th(scope='col' style='width: 40%;') Book Name
+                            th(scope='col' style='width: 30%;') Quantity
+                            th(scope='col' style='width: 10%;') Price
+                            th(scope='col' style='width: 20%;') Remove Item
+                    tbody
+                        - var subtotal = 0
+                        for item in cart
+                            - subtotal = subtotal + item.quantity*item.price
+                            tr
+                                th(scope='row') #{item.name}
+                                td
+                                    form(action='/cart' method='post')
+                                        input#quantity(type='number' name='quantity' min='1' value=`${item.quantity}`)
+                                        |
+                                        |
+                                        button.btn.btn-primary(type='submit' name='update' value=`${item.isbn}`) Update Quantity
+                                td #{item.price}
+                                td
+                                    form(action='/cart' method='post')
+                                        button.btn.btn-danger(type='submit' name='remove' value=`${item.isbn}`) Remove
+                        tr
+                            - var hst = subtotal*0.15
+                            - var total = subtotal + hst
+                            - subtotal = subtotal.toFixed(2)
+                            - hst = hst.toFixed(2)
+                            - total = total.toFixed(2)
+                            th(scope='row')
+                            td Current Subtotal 
+                            td #{subtotal}
+                        tr
+                            th(scope='row')
+                            td HST
+                            td #{hst}
+                        tr
+                            th(scope='row')
+                            td Total
+                            td #{total}
 
 
-            h2 Billing Info
-            form(action='/checkout' method='post')
-                .form-row
-                    .form-group.col-md-6
-                        label(for='inputFirstNameB') First Name
-                        input#inputFirstNameB.form-control(type='text' placeholder='Calvin' required)
-                    .form-group.col-md-6
-                        label(for='inputLastNameB') Last Name
-                        input#inputLastNameB.form-control(type='text' placeholder='Hobbes' required)
-                    .form-group.col-md-6
-                        label(for='inputEmailB') Email
-                        input#inputEmailB.form-control(type='email' placeholder='hello@goodbye.com' required)
-                    .form-group.col-md-6
-                        label(for='inputPhoneB') Phone Number
-                        input#inputPhoneB.form-control(type='tel' placeholder='123-456-7891' required)
-                .form-group
-                    label(for='inputAddressB') Address
-                    input#inputAddressB.form-control(type='text' placeholder='1234 Main St' required)
-                .form-group
-                    label(for='inputAddress2B') Address 2
-                    input#inputAddress2B.form-control(type='text' placeholder='Apartment, studio, or floor')
-                .form-row
-                    .form-group.col-md-6
-                        label(for='inputCityB') City
-                        input#inputCityB.form-control(type='text' required)
-                    .form-group.col-md-6
-                        label(for='inputProvinceB') Province
-                        input#inputProvinceB.form-control(type='text' required)
-                    .form-group.col-md-2
-                        label(for='inputPostalB') Postal Code
-                        input#inputPostalB.form-control(type='text' placeholder='A1B4W9' required)
-                .form-row
-                    .form-group.col-md-6
-                        label(for='inputCreditCardB') Credit Card Number
-                        input#inputCreditCardB.form-control(type='text' placeholder='12345678' required)
-                    .form-group.col-md-6
-                        label(for='inputCreditExpiryB') Credit Card Expiry Date
-                        input#inputCreditExpiryB.form-control(type='text' placeholder='11/22' required)
-                    .form-group.col-md-6
-                        label(for='inputCVVB') CVV
-                        input#inputCVVB.form-control(type='text' placeholder='123' required)
-
-                br
-                br
-                .form-check
-                    input#shipCheck.form-check-input(type='checkbox' value='' oninput="setShippingValues()")
-                    label.form-check-label(for='shipCheck')
-                        | Shipping Info Same as Billing
-                br
-                h2 Shipping Info
-                .form-row
-                    .form-group.col-md-6
-                        label(for='inputFirstNameS') First Name
-                        input#inputFirstNameS.form-control(type='text' placeholder='Calvin' required)
-                    .form-group.col-md-6
-                        label(for='inputLastNameS') Last Name
-                        input#inputLastNameS.form-control(type='text' placeholder='Hobbes' required)
-                    .form-group.col-md-6
-                        label(for='inputEmailS') Email
-                        input#inputEmailS.form-control(type='email' placeholder='hello@goodbye.com' required)
-                    .form-group.col-md-6
-                        label(for='inputPhoneS') Phone Number
-                        input#inputPhoneS.form-control(type='tel' placeholder='123-456-7891' required)
-                .form-group
-                    label(for='inputAddressS') Address
-                    input#inputAddressS.form-control(type='text' placeholder='1234 Main St' required)
-                .form-group
-                    label(for='inputAddress2S') Address 2
-                    input#inputAddress2S.form-control(type='text' placeholder='Apartment, studio, or floor')
-                .form-row
-                    .form-group.col-md-6
-                        label(for='inputCityS') City
-                        input#inputCityS.form-control(type='text' required)
-                    .form-group.col-md-4
-                        label(for='inputProvinceS') Province
-                        input#inputProvinceS.form-control(type='text' required)
-                    .form-group.col-md-2
-                        label(for='inputPostalS') Postal Code
-                        input#inputPostalS.form-control(type='text' placeholder='A1B4W9' required)
-                button.btn.btn-success(type='submit') Complete Checkout
+                h2 Billing Info
+                form(action='/checkout' method='post')
+                    .form-row
+                        .form-group.col-md-6
+                            label(for='inputFirstNameB') First Name
+                            input#inputFirstNameB.form-control(type='text' placeholder='Calvin' name='bill_first' required)
+                        .form-group.col-md-6
+                            label(for='inputLastNameB') Last Name
+                            input#inputLastNameB.form-control(type='text' placeholder='Hobbes' name='bill_last' required)
+                        .form-group.col-md-6
+                            label(for='inputEmailB') Email
+                            input#inputEmailB.form-control(type='email' placeholder='hello@goodbye.com' name='bill_email' required)
+                        .form-group.col-md-6
+                            label(for='inputPhoneB') Phone Number
+                            input#inputPhoneB.form-control(type='tel' placeholder='123-456-7891' name='bill_phone' required)
+                    .form-row
+                        .form-group.col-md-8
+                            label(for='inputAddressB') Address
+                            input#inputAddressB.form-control(type='text' placeholder='1234 Main St' name='bill_street' required)
+                    .form-row
+                        .form-group.col-md-8
+                            label(for='inputAddress2B') Address 2
+                            input#inputAddress2B.form-control(type='text' placeholder='Apartment, studio, or floor' name='bill_apt')
+                    .form-row
+                        .form-group.col-md-6
+                            label(for='inputCityB') City
+                            input#inputCityB.form-control(type='text' placeholder='Twinville' name='bill_city' required)
+                        .form-group.col-md-6
+                            label(for='inputProvinceB') Province/State
+                            input#inputProvinceB.form-control(type='text' placeholder='Ontario' name='bill_prov' required)
+                        .form-group.col-md-6
+                            label(for='inputCountryB') Country
+                            input#inputCountryB.form-control(type='text' placeholder='Canada' name='bill_country' required)
+                        .form-group.col-md-2
+                            label(for='inputPostalB') Postal Code
+                            input#inputPostalB.form-control(type='text' placeholder='A1B4W9' name='bill_post' required)
+                    .form-row
+                        .form-group.col-md-6
+                            label(for='inputCreditCardB') Credit Card Number
+                            input#inputCreditCardB.form-control(type='text' placeholder='12345678' name='bill_card' required)
+                        .form-group.col-md-6
+                            label(for='inputCreditExpiryB') Credit Card Expiry Date
+                            input#inputCreditExpiryB.form-control(type='text' placeholder='11/22' name='bill_expiry' required)
+                        .form-group.col-md-6
+                            label(for='inputCVVB') CVV
+                            input#inputCVVB.form-control(type='text' placeholder='123' name='bill_cvv' required)
+                    .for-row
+                        br
+                        br
+                        .form-check
+                            input#shipCheck.form-check-input(type='checkbox' value='' oninput="setShippingValues()")
+                            label.form-check-label(for='shipCheck')
+                                | Shipping Info Same as Billing
+                        br
+                    .form-row
+                        h2 Shipping Info
+                    .form-row
+                        .form-group.col-md-6
+                            label(for='inputFirstNameS') First Name
+                            input#inputFirstNameS.form-control(type='text' placeholder='Calvin' name='ship_first' required)
+                        .form-group.col-md-6
+                            label(for='inputLastNameS') Last Name
+                            input#inputLastNameS.form-control(type='text' placeholder='Hobbes' name='ship_last' required)
+                        .form-group.col-md-6
+                            label(for='inputEmailS') Email
+                            input#inputEmailS.form-control(type='email' placeholder='hello@goodbye.com' name='ship_email' required)
+                        .form-group.col-md-6
+                            label(for='inputPhoneS') Phone Number
+                            input#inputPhoneS.form-control(type='tel' placeholder='123-456-7891' name='ship_phone' required)
+                    .form-row
+                        .form-group.col-md-8
+                            label(for='inputAddressS') Address
+                            input#inputAddressS.form-control(type='text' placeholder='1234 Main St' name='ship_street' required)
+                    .form-row
+                        .form-group.col-md-8
+                            label(for='inputAddress2S') Address 2
+                            input#inputAddress2S.form-control(type='text' placeholder='Apartment, studio, or floor' name='ship_apt')
+                    .form-row
+                        .form-group.col-md-6
+                            label(for='inputCityS') City
+                            input#inputCityS.form-control(type='text' placeholder='Roswell' name='ship_city' required)
+                        .form-group.col-md-4
+                            label(for='inputProvinceS') Province/State
+                            input#inputProvinceS.form-control(type='text' placeholder='New Mexico' name='ship_prov' required)
+                        .form-group.col-md-4
+                            label(for='inputCountryS') Country
+                            input#inputCountryS.form-control(type='text' placeholder='USA' name='ship_country' required)
+                        .form-group.col-md-2
+                            label(for='inputPostalS') Postal Code
+                            input#inputPostalS.form-control(type='text' placeholder='A1B4W9' name='ship_post' required)
+                    button.btn.btn-primary(type='submit' name='order_submit') Complete Checkout
+            else
+                h3 No items in your cart #{username}. Can't check out without something in your cart.
+        
 

@@ -210,3 +210,8 @@ create view bookPage as
 	from (((book natural join book_auth) natural join author) natural join publisher)
 	group by isbn,pub_name;
 
+--For viewing items in carts
+create view getCartItems as
+	select isbn,quantity,name,price,cart_id
+	from book_cart natural join book
+
