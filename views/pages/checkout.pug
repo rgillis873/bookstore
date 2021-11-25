@@ -144,6 +144,7 @@ html
                         .form-group.col-md-2
                             label(for='inputPostalS') Postal Code
                             input#inputPostalS.form-control(type='text' placeholder='A1B4W9' name='ship_post' required)
+                        input(type="hidden" value=`${total}` name='ord_cost')
                     button.btn.btn-primary(type='submit' name='order_submit') Complete Checkout
             else
                 h3 No items in your cart #{username}. Can't check out without something in your cart.

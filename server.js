@@ -6,6 +6,7 @@ const bodyParser = require("body-parser")
 const pool = require("./db");
 const { request } = require("express");
 const helperFunctions = require ("./serverHelpers"); 
+const { handleBilling, handleShipping } = require("./serverHelpers");
 
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended:true}));
@@ -251,13 +252,14 @@ app.get("/sales", async(req,res)=>{
     }
 })
 
+//Displays checkout page to the user
 app.get("/checkout", async(req,res)=>{
     try{
         //Only logged in users can checkout, so only get cart contents if they are logged in
         //and have a cart
         cartContents = null
         if(req.session.user_name && req.session.cartId){
-            const getCartContents = await pool.query("SELECT * FROM getCartItems where cart_id=$1",[req.session.cartId]);
+            const getCartContents = await pool.query("SELECT * FROM get_cart_items where cart_id=$1",[req.session.cartId]);
             cartContents = getCartContents.rows
         }
         res.render("pages/checkout", {
@@ -270,14 +272,50 @@ app.get("/checkout", async(req,res)=>{
     }
 })
 
+//Handles when a user tries to checkout
 app.post("/checkout", async(req,res)=>{
     try{
         console.log(req.body)
+        
+        cart_id = req.session.cartId
+        order_accepted = false
+        username = req.session.user_name
+        order_id = null
+        ord_cost = req.body.ord_cost
+        low_stock = false
 
-        user_name = req.session.user_name
+        //Check if there is enough stock to fill the order
+        notEnoughBookStock = await pool.query('select * from cant_fill_order($1)',[cart_id])
+        
+        //If there is enough stock to fill the order
+        if(!notEnoughBookStock.rows[0].cant_fill_order){
+            getCartItems = await pool.query('select * from book_cart where cart_id=$1',[cart_id])
+
+            //Update the stock number for each book in the cart
+            for(let i = 0;i<getCartItems.rows.length;i++){
+                quantity = getCartItems.rows[i].quantity
+                isbn = getCartItems.rows[i].isbn
+                updateBookStock = await pool.query('update book set stock=book.stock-$1 where isbn=$2',[quantity,isbn])
+            }
+
+            //Create the order. Returns the order id
+            createOrder = await pool.query('insert into store_order values(default, current_date,$1,$2) returning order_id',[ord_cost,username])
+            
+            order_id =createOrder.rows[0].order_id
+
+            //Handle insertion of shipping, billing and delivery info in db
+            await handleBilling(req.body, order_id)
+            await handleShipping(req.body, order_id)
+            await handleDelivery(order_id)
+
+        }else{
+            low_stock = true
+        }
+
         res.render("pages/orderstatus", {
-            userName: user_name,
-            orderid: 12345
+            userName: req.session.user_name,
+            orderid: order_id,
+            stock_low: low_stock
         });
     }
     catch (err){
@@ -292,7 +330,7 @@ app.get("/cart", async(req,res)=>{
 
         //If the user has items in the cart
         if(req.session.cartId){
-            const getCartContents = await pool.query("SELECT * FROM getCartItems where cart_id=$1",[req.session.cartId]);
+            const getCartContents = await pool.query("SELECT * FROM get_cart_items where cart_id=$1",[req.session.cartId]);
             cartContents = getCartContents.rows
         }
         res.render("pages/cart", {

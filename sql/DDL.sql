@@ -105,7 +105,7 @@ create table user_cart(
 create table store_order(
 	order_id serial,
 	ord_date date,
-	ord_cost int not null,
+	ord_cost numeric(6,2) not null,
 	username varchar(30) not null,
 	primary key(order_id),
 	foreign key(username) references store_user(username)
@@ -211,7 +211,7 @@ create view bookPage as
 	group by isbn,pub_name;
 
 --For viewing items in carts
-create view getCartItems as
+create view get_cart_items as
 	select isbn,quantity,name,price,cart_id
 	from book_cart natural join book
 
