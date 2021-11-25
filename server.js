@@ -6,7 +6,8 @@ const bodyParser = require("body-parser")
 const pool = require("./db");
 const { request } = require("express");
 const helperFunctions = require ("./serverHelpers"); 
-const { handleBilling, handleShipping } = require("./serverHelpers");
+const serverHelpers = require("./serverHelpers");
+
 
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended:true}));
@@ -291,6 +292,12 @@ app.post("/checkout", async(req,res)=>{
         if(!notEnoughBookStock.rows[0].cant_fill_order){
             getCartItems = await pool.query('select * from book_cart where cart_id=$1',[cart_id])
 
+            //Create the order. Returns the order id
+            createOrder = await pool.query('insert into store_order values(default, current_date,$1,$2) returning order_id',[ord_cost,username])
+            
+            order_id =createOrder.rows[0].order_id
+
+
             //Update the stock number for each book in the cart
             for(let i = 0;i<getCartItems.rows.length;i++){
                 quantity = getCartItems.rows[i].quantity
@@ -298,15 +305,10 @@ app.post("/checkout", async(req,res)=>{
                 updateBookStock = await pool.query('update book set stock=book.stock-$1 where isbn=$2',[quantity,isbn])
             }
 
-            //Create the order. Returns the order id
-            createOrder = await pool.query('insert into store_order values(default, current_date,$1,$2) returning order_id',[ord_cost,username])
-            
-            order_id =createOrder.rows[0].order_id
-
             //Handle insertion of shipping, billing and delivery info in db
-            await handleBilling(req.body, order_id)
-            await handleShipping(req.body, order_id)
-            await handleDelivery(order_id)
+            await helperFunctions.handleBilling(req.body, order_id)
+            await helperFunctions.handleShipping(req.body, order_id)
+            await helperFunctions.handleDelivery(order_id)
 
         }else{
             low_stock = true
@@ -380,12 +382,11 @@ app.post("/cart", async(req,res)=>{
     }
 })
 
+//Displays page where user can search for the tracking info of their order
 app.get("/tracking", async(req,res)=>{
     try{
-        //const allBooks = await pool.query("SELECT * FROM book");
-        user_name = req.session.user_name
         res.render("pages/tracking", {
-            userName: user_name
+            userName: req.session.user_name
         });
     }
     catch (err){
@@ -393,34 +394,48 @@ app.get("/tracking", async(req,res)=>{
     }
 })
 
+
+//Handles displaying the tracking info for an order
 app.get("/tracking/:orderid", async(req,res)=>{
-    tracking_info = {}
-    tracking_info['exists'] = false
     try{
-        orderid = parseInt(req.params.orderid)
-        const getTrackingInfo = await pool.query("SELECT * FROM shipping where order_id = $1",[orderid]);
-        tracking_info.exists = true
-        tracking_info['details'] = getTrackingInfo.rows
-        console.log(tracking_info)
-        user_name = req.session.user_name
+        exists = false
+        order_details = null
+        order_items = null
+        order_date = null
+        order_cost = null
+
+        //Get the order id
+        order_id = parseInt(req.params.orderid)
+        
+        //Check for the order in the db
+        const getTrackingInfo = await pool.query("SELECT * FROM delivery_for_order where order_id=$1",[order_id]);
+        
+        //There was delivery info for the order
         if(getTrackingInfo.rows.length > 0){
-            res.render("pages/tracking_info", {
-                userName: user_name,
-                trackingInfo: tracking_info
-            });
-        }else{
-            res.render("pages/tracking_info", {
-                userName: user_name,
-                orderId: orderid
-            });    
+            exists = true
+            order_details = getTrackingInfo.rows[0]
+         
+            //Get items of the order
+            const getOrderItems = await pool.query("SELECT * FROM order_items where order_id=$1",[order_id]);
+            order_items = getOrderItems.rows
+            order_date = getOrderItems.rows[0].ord_date
+            order_cost = getOrderItems.rows[0].ord_cost
         }
+
+        //Render the page
+        res.render("pages/tracking_info", {
+            userName: req.session.user_name,
+            orderExists: exists,
+            orderId: order_id,
+            trackingInfo: order_details,
+            orderItems: order_items,
+            orderDate: order_date,
+            orderCost: order_cost
+        });
+        
     }
     catch (err){
         console.error(err.message);
-        res.render("pages/tracking_info", {
-            userName: user_name,
-            orderId: orderid
-        });
     }
 })
 
@@ -428,8 +443,17 @@ app.get("/tracking/:orderid", async(req,res)=>{
 
 app.get("/admin", async(req,res)=>{
     try{
-        //const allBooks = await pool.query("SELECT * FROM book");
+        
+        //Get list of book genres
+        const getGenres = await pool.query("SELECT distinct genre FROM book");
+        
+        //Get list of authors
+        const getAuthors = await pool.query("SELECT auth_name FROM author"); 
+
         res.render("pages/admin", {
+            genres: getGenres.rows,
+            authors: getAuthors.rows,
+
         });
     }
     catch (err){
@@ -437,20 +461,39 @@ app.get("/admin", async(req,res)=>{
     }
 })
 
+//
 app.get("/reports", async(req,res)=>{
     try{
-        //const allBooks = await pool.query("SELECT * FROM book");
-        res.json("sales");
+        const salesInfo = await serverHelpers.handleReport(req.query)
+        //Get info for sales made by the store 
+        //const allSales = await pool.query("SELECT * FROM book_genre_sale_info");
+
+        res.redirect('back')
+        //res.render("pages/admin", {
+        //});
     }
     catch (err){
         console.error(err.message);
     }
 })
 
+//Displays admin page where owners can view orders made to publisher for books
 app.get("/orders", async(req,res)=>{
     try{
-        //const allBooks = await pool.query("SELECT * FROM book");
-        res.json("storeorders");
+        order_list = null
+
+        //Get list of orders from publisher
+        const getWarehouseOrders = await pool.query("SELECT * FROM publisher_orders");
+        
+        //If list is not empty
+        if(getWarehouseOrders.rows.length > 0){
+            order_list = getWarehouseOrders.rows
+        }
+
+        //Render the publisher orders page
+        res.render("pages/pubOrders", {
+            orderList: order_list
+        });
     }
     catch (err){
         console.error(err.message);

@@ -215,3 +215,30 @@ create view get_cart_items as
 	select isbn,quantity,name,price,cart_id
 	from book_cart natural join book
 
+--For viewing tracking for an order
+create view delivery_for_order as
+select * 
+from track_order natural join delivery
+
+--For viewing the items from an order
+create view order_items as
+select * 
+from store_order natural join item;
+
+--For viewing orders to publisher. Ordered by date (new to old).
+create view publisher_orders as
+select wo_date,quantity,pub_name,warehouse_order.isbn,name
+from warehouse_order natural join publisher natural join book
+order by wo_date desc;
+
+--For viewing the sales info of books by isbn, genre or year of sale
+create view book_genre_sale_info as
+select order_id,sale.isbn, quantity,sale_date, name, genre, price,pub_percent
+from sale natural join book
+order by sale_date desc;
+
+--For viewing the sales info by authors of books. Ordered by date (new to old)
+create view book_sale_info as
+select order_id,sale.isbn, quantity,sale_date, name, genre, price,pub_percent,auth_name
+from sale natural join book natural join book_auth natural join author
+order by sale_date desc;

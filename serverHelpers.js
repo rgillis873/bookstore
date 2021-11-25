@@ -169,5 +169,19 @@ module.exports = {
         addOrderTrack = await pool.query('insert into track_order values($1,$2)',[order_id,delivery_id])
 
         return
+    },
+
+    //Handles querying for sales report info
+    handleReport: async function(query){
+        genre = query.genre
+        author = query.author
+        year = query.year
+        month = query.month
+
+        if(author){
+
+        }else{
+
+        }
     }
 }

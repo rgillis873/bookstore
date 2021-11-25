@@ -3,10 +3,27 @@ html
         title Look Inna Book BookStore
         include ./header.pug
     body
-    if trackingInfo && trackingInfo.exists
-        h2 Tracking Info for Order ##{trackingInfo.details[0].order_id}
-        h4 Date of Order: #{trackingInfo.details[0].date_of_order}
-        h4 Current Location of Order: #{trackingInfo.details[0].current_city}, #{trackingInfo.details[0].current_province}
-        h4 Estimated Time til Arrival: #{trackingInfo.details[0].days_til_arrival} days
+    if orderExists
+        h2 Tracking Info for Order ##{trackingInfo.order_id}
+        br
+        br
+        h4 Date of Order: #{orderDate}
+        h4 Current Location of Order: #{trackingInfo.cur_city}, #{trackingInfo.cur_province} , #{trackingInfo.cur_country}
+        h4 Estimated Time til Arrival: #{trackingInfo.eta} days
+        br
+        br
+        h4 Order Cost: $#{orderCost}
+        br
+        h4 Order Items
+        table.table
+                thead
+                    tr
+                        th(scope='col' style='width: 80%;') Book Name
+                        th(scope='col' style='width: 20%;') Quantity
+                tbody
+                    for item in  orderItems
+                        tr
+                            th(scope='row') #{item.book_name}
+                            td #{item.quantity}
     else
         h2 Unable to find Order # #{orderId} in our system

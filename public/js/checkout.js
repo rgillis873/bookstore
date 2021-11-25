@@ -1,3 +1,4 @@
+//Sets shipping info to same as billing when checkbox is checked
 function setShippingValues(){
     checked = document.getElementById("shipCheck").checked;
     
@@ -10,4 +11,5 @@ function setShippingValues(){
     document.getElementById("inputCityS").value = checked ? document.getElementById("inputCityB").value : "";
     document.getElementById("inputProvinceS").value = checked ? document.getElementById("inputProvinceB").value : "";
     document.getElementById("inputPostalS").value = checked ? document.getElementById("inputPostalB").value : "";
+    document.getElementById("inputCountryS").value = checked ? document.getElementById("inputCountryB").value : "";
 }
