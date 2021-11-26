@@ -26,6 +26,13 @@ html
                 br
                 br
                 .form-row    
+                    select.form-select.mx-auto(aria-label='isbn' name='isbn')
+                        option(selected value='') Select an Book
+                            for book in books
+                                option(value=`${book.isbn}`) #{book.name}
+                br
+                br
+                .form-row    
                     select.form-select.mx-auto(aria-label='month' name='month')
                         option(selected value='') Select a Month
                             - var months = ['January','February','March','April','May','June','July','August','September','October','November', 'December']

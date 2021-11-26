@@ -43,7 +43,7 @@ create function cant_fill_order(user_cart_id int)
 		where cart_id=user_cart_id
 		and quantity > stock
   	);
-	END
+	end
 	$$ 
 	LANGUAGE plpgsql;
 

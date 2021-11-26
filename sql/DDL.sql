@@ -85,21 +85,16 @@ create table book_cart(
 	foreign key(cart_id) references cart(cart_id)
 );
 
+
 create table store_user(
 	username varchar(30) not null,
 	first_name varchar(30) not null,
 	last_name varchar(30) not null,
 	email varchar(50) not null,
 	user_pass varchar(20) not null,
-	primary key(username)
-);
-
-create table user_cart(
 	cart_id int not null,
-	username varchar(30) not null,
-	primary key(cart_id),
-	foreign key(cart_id) references cart(cart_id),
-	foreign key(username) references store_user(username)
+	primary key(username),
+	foreign key (cart_id) references cart(cart_id)
 );
 
 create table store_order(
@@ -131,21 +126,26 @@ create table sale(
 	foreign key(order_id) references store_order(order_id)
 );
 
+create table expense(
+	exp_id serial not null,
+	exp_date date not null,
+	amount numeric(6,2) not null,
+	pub_id int not null,
+	sale_id int not null,
+	primary key(exp_id),
+	foreign key(pub_id) references publisher(pub_id),
+	foreign key(sale_id) references sale(sale_id)
+);
+
 create table delivery(
 	delivery_id serial,
 	cur_city varchar(30) not null,
 	cur_province varchar(30) not null,
 	cur_country varchar(30) not null,
 	eta int not null,
-	primary key(delivery_id)
-);
-
-create table track_order(
 	order_id int not null,
-	delivery_id int not null,
-	primary key(order_id),
-	foreign key(order_id) references store_order(order_id),
-	foreign key(delivery_id) references delivery(delivery_id) 
+	primary key(delivery_id),
+	foreign key (order_id) references store_order(order_id)
 );
 
 create table billing(
@@ -163,15 +163,9 @@ create table billing(
 	credit_num varchar(16) not null,
 	credit_expiry varchar(5) not null,
 	credit_cvv varchar(3) not null,
-	primary key(bill_id)
-);
-
-create table order_bill(
 	order_id int not null,
-	bill_id int not null,
-	primary key(order_id),
-	foreign key(order_id) references store_order(order_id),
-	foreign key(bill_id) references billing(bill_id)
+	primary key(bill_id),
+	foreign key (order_id) references store_order(order_id)
 );
 
 create table shipping(
@@ -186,16 +180,12 @@ create table shipping(
 	country varchar(30) not null,
 	post_code varchar(7) not null,
 	email varchar(50) not null,
-	primary key(ship_id)
+	order_id int not null,
+	primary key(ship_id),
+	foreign key (order_id) references store_order(order_id)
 );
 
-create table order_ship(
-	order_id int not null,
-	ship_id int not null,
-	primary key(order_id),
-	foreign key(order_id) references store_order(order_id),
-	foreign key(ship_id) references shipping(ship_id)
-);
+
 
 --For searching books
 create view booksAuthors as
@@ -212,7 +202,7 @@ create view bookPage as
 
 --For viewing items in carts
 create view get_cart_items as
-	select isbn,quantity,name,price,cart_id
+	select isbn,quantity,name,price,cart_id,pub_percent,pub_id
 	from book_cart natural join book
 
 --For viewing tracking for an order
@@ -231,14 +221,17 @@ select wo_date,quantity,pub_name,warehouse_order.isbn,name
 from warehouse_order natural join publisher natural join book
 order by wo_date desc;
 
---For viewing the sales info of books by isbn, genre or year of sale
+--For viewing the sales info of books by isbn, genre, month or year of sale
 create view book_genre_sale_info as
-select order_id,sale.isbn, quantity,sale_date, name, genre, price,pub_percent
-from sale natural join book
+select order_id,sale.isbn,quantity, (quantity*price)::numeric(6,2) as sale_tot,sale_date, name, genre,pub_percent,
+pub_name,bank_account, ((quantity*price)::numeric(6,2)*(pub_percent::numeric(4,2)/100))::numeric(6,2) as exp_tot
+from sale natural join book natural join publisher
 order by sale_date desc;
 
 --For viewing the sales info by authors of books. Ordered by date (new to old)
-create view book_sale_info as
-select order_id,sale.isbn, quantity,sale_date, name, genre, price,pub_percent,auth_name
-from sale natural join book natural join book_auth natural join author
+create view author_sale_info as
+select order_id,sale.isbn,quantity,auth_name,(quantity*price)::numeric(6,2) as sale_tot,sale_date, name, genre,pub_percent,
+pub_name,bank_account, ((quantity*price)::numeric(6,2)*(pub_percent::numeric(4,2)/100))::numeric(6,2) as exp_tot
+from sale natural join book natural join book_auth natural join author natural join publisher
 order by sale_date desc;
+

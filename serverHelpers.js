@@ -36,7 +36,7 @@ module.exports = {
                 where.push("genre='"+query.genre+"'")
             }
 
-            //User searched by price
+            //User searched by author
             if(query.author && query.author.length > 0){
                 where.push("authors LIKE '%"+query.author+"%'")
             }
@@ -173,15 +173,87 @@ module.exports = {
 
     //Handles querying for sales report info
     handleReport: async function(query){
-        genre = query.genre
-        author = query.author
-        year = query.year
-        month = query.month
 
-        if(author){
+        //Construct the where string for the query
+        where_string = buildSalesWhereString(query)
 
+        getSalesInfo = null
+
+        //Query seperate view for getting reports for authors
+        if(query.author  && query.author.length > 0){
+            getSalesInfo = await pool.query('select * from author_sale_info '+where_string)
         }else{
-
+            getSalesInfo = await pool.query('select * from book_genre_sale_info '+where_string)
         }
+
+        return getSalesInfo.rows
+    },
+
+    //Handles retrieving the summed number of books,sales and expenses for reports
+    handleTotals: async function(query){
+
+        //Construct the where string for the query
+        where_string = buildSalesWhereString(query)
+
+        getSalesTotals = null
+
+        //Query seperate view for getting reports for authors
+        if(query.author && query.author.length > 0){
+            getSalesTotals = await pool.query('select sum(quantity) as tot_quantity,'+
+                'sum(sale_tot) as tot_sales,'+
+                'sum(exp_tot) as tot_expense '+
+                'from author_sale_info '+ where_string)
+        }else{
+            getSalesTotals = await pool.query('select sum(quantity) as tot_quantity,'+
+            'sum(sale_tot) as tot_sales,'+
+            'sum(exp_tot) as tot_expense '+
+            'from book_genre_sale_info '+ where_string)
+        }
+
+        return getSalesTotals.rows
     }
+}
+
+//Builds the where part of the query for sales info.Returns strings
+function buildSalesWhereString(query){
+    genre = query.genre
+    author = query.author
+    year = query.year
+    month = query.month
+    isbn = query.isbn
+
+    where = []
+    where_string = ""
+
+    //If the user searched by genre
+    if(genre && genre.length > 0){
+        where.push("genre='"+genre+"'")
+    }
+
+    //If the user searched by author
+    if(author && author.length > 0){
+        where.push("auth_name='"+author+"'")
+    }
+
+    //If the user searched by year
+    if(year && year.length > 0){
+        where.push("EXTRACT(year FROM sale_date)="+parseInt(year))
+    }
+
+    //If user searched by book
+    if(isbn && isbn.length > 0){
+        where.push("isbn='"+isbn+"'")
+    }
+
+    //If the user searched by month
+    if(month && month.length > 0){
+        where.push("EXTRACT(month FROM sale_date)="+parseInt(month))
+    }
+
+    if(where.length > 0){
+        where_string = "where "+ where.join(" and ")    
+    }
+    
+    return where_string
+
 }

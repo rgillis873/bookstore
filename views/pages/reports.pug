@@ -2,4 +2,49 @@ html
     head
         title Look Inna Book BookStore
         include ./adminHeader.pug
-    body 
+    body
+        if salesInfo && salesInfo.length
+            h2 Sales vs Expenses
+            br
+            table.table
+                thead
+                    tr
+                        th(scope='col' style='width: 15%;') Book Name
+                        th(scope='col' style='width: 10%;') Quantity
+                        th(scope='col' style='width: 10%;') Sale Amount
+                        th(scope='col' style='width: 15%;') Publisher
+                        th(scope='col' style='width: 10%;') Percent to Publisher
+                        th(scope='col' style='width: 10%;') Expense
+                        th(scope='col' style='width: 10%;') Bank Account #
+                        th(scope='col' style='width: 10%;') Date of Sale
+                tbody
+                    for sale in  salesInfo
+                        tr
+                            td #{sale.name}
+                            td #{sale.quantity}
+                            td #{sale.sale_tot}
+                            td #{sale.pub_name}
+                            td #{sale.pub_percent}
+                            td #{sale.exp_tot}
+                            td #{sale.bank_account}
+                            td #{sale.sale_date}
+                if salesTotals
+                    tr
+                        th(scope='row') Total Units Sold
+                        td #{salesTotals[0].tot_quantity}
+                    tr
+                        th(scope='row') Total Sales Amount
+                        td
+                        td #{salesTotals[0].tot_sales}
+                    tr
+                        th(scope='row') Total Expenses Amount
+                        td
+                        td
+                        td
+                        td
+                        td #{salesTotals[0].tot_expense}
+                    tr
+                        th(scope='row') Total Profit
+                        td #{(salesTotals[0].tot_sales - salesTotals[0].tot_expense).toFixed(2)}
+        else
+            h4 No sales reports match those criteria

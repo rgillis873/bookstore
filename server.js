@@ -145,6 +145,10 @@ app.post("/register", async(req,res)=>{
         let user_name = req.body.user_name;
         let user_pass = req.body.user_pass;
 
+        //Create cart for the user
+        createCart = await pool.query('insert into cart values(default) returning cart_id')
+        cart_id = createCart.rows[0].cart_id
+
         //Add the user to the store_user relation
         const addUser = await pool.query("Insert into store_user(first_name, last_name, email, username, user_pass) values($1, $2, $3, $4, $5)"
             , [first_name, last_name, email, user_name, user_pass]);
@@ -154,11 +158,11 @@ app.post("/register", async(req,res)=>{
             req.session.user_name = user_name;
 
             //Create cart for the user
-            createCart = await pool.query('insert into cart values(default) returning cart_id')
-            cart_id = createCart.rows[0].cart_id
+            //createCart = await pool.query('insert into cart values(default) returning cart_id')
+            //cart_id = createCart.rows[0].cart_id
             
             //Assign the cart to the user
-            assignCartToUser = await pool.query('insert into user_cart values($1,$2)',[cart_id,user_name])
+            //assignCartToUser = await pool.query('insert into user_cart values($1,$2)',[cart_id,user_name])
 
             //Assign the correct cart id to the logged in user
             old_cart_id = req.session.cartId
@@ -169,8 +173,12 @@ app.post("/register", async(req,res)=>{
                 changeCartItems = await pool.query('update book_cart set cart_id=$1 where cart_id=$2',[cart_id,old_cart_id])
             }
 
-            res.redirect("/registrationresult")
+            //res.redirect("/registrationresult")
+        }else{
+            //Delete the cart created for the user
+            deleteCart = await pool.query('delete from cart where cart_id=$1',[cart_id])
         }
+        res.redirect("/registrationresult")
     }
     catch (err){
         //If unsuccessful adding the user, don't set username and redirect to the registration result page
@@ -448,11 +456,15 @@ app.get("/admin", async(req,res)=>{
         const getGenres = await pool.query("SELECT distinct genre FROM book");
         
         //Get list of authors
-        const getAuthors = await pool.query("SELECT auth_name FROM author"); 
+        const getAuthors = await pool.query("SELECT auth_name FROM author");
+
+        //Get list of books
+        const getBooks = await pool.query("SELECT isbn,name FROM book");
 
         res.render("pages/admin", {
             genres: getGenres.rows,
             authors: getAuthors.rows,
+            books: getBooks.rows
 
         });
     }
@@ -461,16 +473,18 @@ app.get("/admin", async(req,res)=>{
     }
 })
 
-//
+//Handles when user wants to view a report
 app.get("/reports", async(req,res)=>{
     try{
-        const salesInfo = await serverHelpers.handleReport(req.query)
-        //Get info for sales made by the store 
-        //const allSales = await pool.query("SELECT * FROM book_genre_sale_info");
+        console.log(req.query)
+        const sales_info = await serverHelpers.handleReport(req.query)
+        
+        const sales_totals = await serverHelpers.handleTotals(req.query)
 
-        res.redirect('back')
-        //res.render("pages/admin", {
-        //});
+        res.render("pages/reports", {
+            salesInfo : sales_info,
+            salesTotals: sales_totals
+        });
     }
     catch (err){
         console.error(err.message);
