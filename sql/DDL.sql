@@ -223,15 +223,16 @@ order by wo_date desc;
 
 --For viewing the sales info of books by isbn, genre, month or year of sale
 create view book_genre_sale_info as
-select order_id,sale.isbn,quantity, (quantity*price)::numeric(6,2) as sale_tot,sale_date, name, genre,pub_percent,
-pub_name,bank_account, ((quantity*price)::numeric(6,2)*(pub_percent::numeric(4,2)/100))::numeric(6,2) as exp_tot
-from sale natural join book natural join publisher
+select order_id,sale.isbn,quantity, (quantity*price)::numeric(6,2) as sale_tot,sale_date, name,
+genre,pub_percent,pub_name,bank_account, amount
+from sale natural join expense natural join book natural join publisher
 order by sale_date desc;
 
 --For viewing the sales info by authors of books. Ordered by date (new to old)
 create view author_sale_info as
-select order_id,sale.isbn,quantity,auth_name,(quantity*price)::numeric(6,2) as sale_tot,sale_date, name, genre,pub_percent,
-pub_name,bank_account, ((quantity*price)::numeric(6,2)*(pub_percent::numeric(4,2)/100))::numeric(6,2) as exp_tot
-from sale natural join book natural join book_auth natural join author natural join publisher
+select order_id,sale.isbn,quantity,auth_name,(quantity*price)::numeric(6,2) as sale_tot,
+sale_date, name, genre,pub_percent,pub_name,bank_account,amount
+from sale natural join expense natural join book natural join book_auth 
+natural join author natural join publisher
 order by sale_date desc;
 

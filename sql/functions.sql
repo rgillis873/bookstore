@@ -91,3 +91,32 @@ create function complete_store_order()
 		return new;
 	end;
 	$$
+
+create function complete_store_order()
+	returns trigger
+	language plpgsql
+	as
+	$$
+	declare user_cart_id int;
+	begin
+		select cart_id into user_cart_id
+		from store_user
+		where username = new.username;
+		insert into item (book_name,quantity,order_id)
+		select name,quantity,new.order_id
+		from get_cart_items
+		where cart_id=user_cart_id;
+		insert into sale (quantity,sale_date,isbn,order_id)
+		select quantity, current_date,isbn,new.order_id
+		from get_cart_items
+		where cart_id=user_cart_id;
+		insert into expense (exp_date,amount, pub_id,sale_id)
+		select sale_date, 
+		((quantity*price)::numeric(6,2)*(pub_percent::numeric(6,2)/100))::numeric(6,2),
+		pub_id, sale_id
+		from sale natural join book
+		where order_id=new.order_id;
+		delete from book_cart where cart_id=user_cart_id;
+		return new;
+	end;
+	$$

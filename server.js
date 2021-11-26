@@ -4,23 +4,27 @@ const session = require("express-session")
 const cookieParser = require("cookie-parser")
 const bodyParser = require("body-parser")
 const pool = require("./db");
-const { request } = require("express");
 const helperFunctions = require ("./serverHelpers"); 
 const serverHelpers = require("./serverHelpers");
 
-
+//Use json
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended:true}));
 
+//Session info
 app.use(cookieParser());
 app.use(session({secret:"This is a book store"}));
 
+//Serve static files
 app.use(express.static("public"));
+
 //View Engine
 app.set("view engine", "pug");
 
+//Displays landing page for the book store
 app.get("/", async(req, res)=>{
     try {
+        //Render the page
         res.render("pages/index", {
             userName : req.session.user_name
         });
@@ -44,6 +48,7 @@ app.get("/books", async(req,res)=>{
         //Get list of books
         const allBooks = await pool.query(bookSearch);
         
+        //Render the page
         res.render("pages/books", {
             userName : req.session.user_name,
             genres: getGenres.rows,
@@ -70,6 +75,7 @@ app.get("/books/:isbn", async(req,res)=>{
         //Determine the average rating for the book
         const getRating = await pool.query("SELECT * FROM avg_rating($1)",[isbn])
         
+        //Convert average rating for the book
         avgRating = ''
         if(getRating.rows.length == 0 || getRating.rows[0].avg_rating == null){
             avgRating = 'N/A'
@@ -77,6 +83,7 @@ app.get("/books/:isbn", async(req,res)=>{
             avgRating = getRating.rows[0].avg_rating.toString()+"/5"
         }
         
+        //Render the page
         res.render("pages/book", {
             userName : req.session.user_name,
             book: bookInfo.rows[0],
@@ -114,6 +121,7 @@ app.post("/review", async(req,res)=>{
 //Displays page where user can register for the store
 app.get("/register", async(req,res)=>{
     try{
+        //Render the page
         res.render("pages/register", {
             userName : req.session.user_name
         });
@@ -126,6 +134,7 @@ app.get("/register", async(req,res)=>{
 //Displays page showing the outcome of the registration process
 app.get("/registrationresult", async(req,res)=>{
     try{
+        //Render the page
         res.render("pages/registrationresult", {
             userName : req.session.user_name
         });
@@ -150,19 +159,12 @@ app.post("/register", async(req,res)=>{
         cart_id = createCart.rows[0].cart_id
 
         //Add the user to the store_user relation
-        const addUser = await pool.query("Insert into store_user(first_name, last_name, email, username, user_pass) values($1, $2, $3, $4, $5)"
-            , [first_name, last_name, email, user_name, user_pass]);
+        const addUser = await pool.query("Insert into store_user(first_name, last_name, email, username, user_pass, cart_id)"+ 
+            "values($1, $2, $3, $4, $5, $6)", [first_name, last_name, email, user_name, user_pass, cart_id]);
         
         //If successful, set the username and redirect to the registration result page
         if(addUser.rowCount > 0){
             req.session.user_name = user_name;
-
-            //Create cart for the user
-            //createCart = await pool.query('insert into cart values(default) returning cart_id')
-            //cart_id = createCart.rows[0].cart_id
-            
-            //Assign the cart to the user
-            //assignCartToUser = await pool.query('insert into user_cart values($1,$2)',[cart_id,user_name])
 
             //Assign the correct cart id to the logged in user
             old_cart_id = req.session.cartId
@@ -172,12 +174,13 @@ app.post("/register", async(req,res)=>{
             if(old_cart_id){
                 changeCartItems = await pool.query('update book_cart set cart_id=$1 where cart_id=$2',[cart_id,old_cart_id])
             }
-
-            //res.redirect("/registrationresult")
+        //If unsuccessful registering, delete the cart
         }else{
             //Delete the cart created for the user
             deleteCart = await pool.query('delete from cart where cart_id=$1',[cart_id])
         }
+
+        //Send user to page showing the result of the registration
         res.redirect("/registrationresult")
     }
     catch (err){
@@ -201,19 +204,22 @@ app.post("/signin", async(req,res)=>{
         if(checkSignIn.rows.length > 0){
             req.session.user_name = username
             
+            user_cart_id = checkSignIn.rows[0].cart_id
+            
             //If the user had cart items before logging in, merge them with
             //the pre-existing items in the logged in user's cart and 
             //assign a new cart number.Otherwise, get their cart id
             if(req.session.cartId){
-                console.log("merge problem")
-                req.session.cartId = await helperFunctions.mergeCarts(req.session.cartId, req.session.user_name)
-            }else{
-                console.log("here")
-                getCartIdForUser = await pool.query("select cart_id from user_cart where username=$1",[req.session.user_name])
-                req.session.cartId = getCartIdForUser.rows[0].cart_id    
+                mergeCarts = await helperFunctions.mergeCarts(req.session.cartId, req.session.user_name, user_cart_id)
             }
+
+            //Assign the user's cart to the user
+            req.session.cartId = user_cart_id
             
+            //Reload the user's current page
             res.redirect("back");
+        
+        //If login fails
         }else{
             //Direct user to failed signin page if not successful
             res.redirect("/failedsignin")
@@ -227,7 +233,7 @@ app.post("/signin", async(req,res)=>{
 //Displays page for when user is unsuccessful signing in
 app.get("/failedsignin", async(req,res)=>{
     try{
-        
+        //Render the page
         res.render("pages/failedsignin",{
             userName: req.session.user_name
         });
@@ -240,21 +246,12 @@ app.get("/failedsignin", async(req,res)=>{
 //Handles when a user signs out of the store
 app.post("/signout", async(req,res)=>{
     try{
+        //Set user id and cart id for the session back to null
         req.session.user_name = null
         req.session.cartId = null
+
+        //Reload page for the user
         res.redirect("back");
-    }
-    catch (err){
-        console.error(err.message);
-    }
-})
-
-
-
-app.get("/sales", async(req,res)=>{
-    try{
-        //const allBooks = await pool.query("SELECT * FROM book");
-        res.json("sales");
     }
     catch (err){
         console.error(err.message);
@@ -271,6 +268,8 @@ app.get("/checkout", async(req,res)=>{
             const getCartContents = await pool.query("SELECT * FROM get_cart_items where cart_id=$1",[req.session.cartId]);
             cartContents = getCartContents.rows
         }
+
+        //Render the page
         res.render("pages/checkout", {
             userName: req.session.user_name,
             cart: cartContents
@@ -284,27 +283,31 @@ app.get("/checkout", async(req,res)=>{
 //Handles when a user tries to checkout
 app.post("/checkout", async(req,res)=>{
     try{
-        console.log(req.body)
         
+        //Get cart id and user id from the session
         cart_id = req.session.cartId
-        order_accepted = false
         username = req.session.user_name
+        
+        order_accepted = false
         order_id = null
-        ord_cost = req.body.ord_cost
         low_stock = false
+
+        //Get cost of the order from the request
+        ord_cost = req.body.ord_cost
 
         //Check if there is enough stock to fill the order
         notEnoughBookStock = await pool.query('select * from cant_fill_order($1)',[cart_id])
         
         //If there is enough stock to fill the order
         if(!notEnoughBookStock.rows[0].cant_fill_order){
+
+            //Get the items in the user's cart
             getCartItems = await pool.query('select * from book_cart where cart_id=$1',[cart_id])
 
             //Create the order. Returns the order id
             createOrder = await pool.query('insert into store_order values(default, current_date,$1,$2) returning order_id',[ord_cost,username])
             
             order_id =createOrder.rows[0].order_id
-
 
             //Update the stock number for each book in the cart
             for(let i = 0;i<getCartItems.rows.length;i++){
@@ -317,11 +320,13 @@ app.post("/checkout", async(req,res)=>{
             await helperFunctions.handleBilling(req.body, order_id)
             await helperFunctions.handleShipping(req.body, order_id)
             await helperFunctions.handleDelivery(order_id)
-
+        
+        //If not enough stock to complete the order
         }else{
             low_stock = true
         }
 
+        //Render the page
         res.render("pages/orderstatus", {
             userName: req.session.user_name,
             orderid: order_id,
@@ -340,9 +345,13 @@ app.get("/cart", async(req,res)=>{
 
         //If the user has items in the cart
         if(req.session.cartId){
+
+            //Get the items in the user's cart
             const getCartContents = await pool.query("SELECT * FROM get_cart_items where cart_id=$1",[req.session.cartId]);
             cartContents = getCartContents.rows
         }
+
+        //Render the page
         res.render("pages/cart", {
             userName: req.session.user_name,
             cart: cartContents
@@ -356,8 +365,7 @@ app.get("/cart", async(req,res)=>{
 //Handles when a user adds/removes an item from their cart
 app.post("/cart", async(req,res)=>{
     try{
-        
-        //If no cart id, create a cart
+        //If no cart id, create a cart (for non logged in users)
         if(!req.session.cartId){
             const createCart = await pool.query("insert into cart values(default) returning cart_id");
             req.session.cartId = createCart.rows[0].cart_id
@@ -365,24 +373,36 @@ app.post("/cart", async(req,res)=>{
 
         //If user is removing a book from the cart
         if(req.body.remove){
+            //Get the isbn of the book being removed
             isbn = req.body.remove
+
+            //Delete the book from the cart
             const updateCartContents = await pool.query("delete from book_cart where isbn=$1 and cart_id=$2", [isbn,req.session.cartId]);
         }
+
+        //If user is adding more books to the cart
         else if(req.body.add){
+            //Get the isbn and quantity of the book being added
             isbn = req.body.add
             new_quantity = req.body.quantity
-            console.log(req.session.cartId)
+            
+            //Add the book to the cart. May be adding more to a book that is already in the cart
             const addOrUpdateCartContents = await pool.query("insert into book_cart values($1,$2,$3) on conflict (cart_id,isbn) do update set"
-             +" quantity=book_cart.quantity+$3",[isbn, req.session.cartId, new_quantity]);
+                +" quantity=book_cart.quantity+$3",[isbn, req.session.cartId, new_quantity]);
         }
+
         //If user is updating the quantity of a book in their cart
         else if(req.body.update){
+            //Get the isbn and new quantity of the book being updated
             isbn = req.body.update
             new_quantity = req.body.quantity
-            console.log(req.session.cartId)
-            const addOrUpdateCartContents = await pool.query("insert into book_cart values($1,$2,$3) on conflict (cart_id,isbn) do update set"
-             +" quantity=$3",[isbn, req.session.cartId, new_quantity]);
+
+            //Update the quantity of the book in the cart
+            const updateCartContents = await pool.query("update book_cart set quantity=$1 where isbn=$2 and cart_id=$3",
+                [new_quantity, isbn, req.session.cartId]);
         }
+
+        //Reload the page for the user
         res.redirect("back")
     }
     catch (err){
@@ -393,6 +413,8 @@ app.post("/cart", async(req,res)=>{
 //Displays page where user can search for the tracking info of their order
 app.get("/tracking", async(req,res)=>{
     try{
+
+        //Render the page
         res.render("pages/tracking", {
             userName: req.session.user_name
         });
@@ -416,7 +438,7 @@ app.get("/tracking/:orderid", async(req,res)=>{
         order_id = parseInt(req.params.orderid)
         
         //Check for the order in the db
-        const getTrackingInfo = await pool.query("SELECT * FROM delivery_for_order where order_id=$1",[order_id]);
+        const getTrackingInfo = await pool.query("SELECT * FROM delivery where order_id=$1",[order_id]);
         
         //There was delivery info for the order
         if(getTrackingInfo.rows.length > 0){
@@ -447,9 +469,20 @@ app.get("/tracking/:orderid", async(req,res)=>{
     }
 })
 
-
-
+//Displays landing page for store owner activities
 app.get("/admin", async(req,res)=>{
+    try{
+        //Render the page
+        res.render("pages/admin", {
+        });
+    }
+    catch (err){
+        console.error(err.message);
+    }
+})
+
+//Displays page where owner can create reports
+app.get("/createreport", async(req,res)=>{
     try{
         
         //Get list of book genres
@@ -461,7 +494,8 @@ app.get("/admin", async(req,res)=>{
         //Get list of books
         const getBooks = await pool.query("SELECT isbn,name FROM book");
 
-        res.render("pages/admin", {
+        //Render the page
+        res.render("pages/createreport", {
             genres: getGenres.rows,
             authors: getAuthors.rows,
             books: getBooks.rows
@@ -473,14 +507,16 @@ app.get("/admin", async(req,res)=>{
     }
 })
 
-//Handles when user wants to view a report
+//Handles displaying a report for the owner
 app.get("/reports", async(req,res)=>{
     try{
-        console.log(req.query)
+        //Get the sales info matching the specified criteria
         const sales_info = await serverHelpers.handleReport(req.query)
         
+        //Get the sales totals matching the specified criteria
         const sales_totals = await serverHelpers.handleTotals(req.query)
 
+        //Render the page
         res.render("pages/reports", {
             salesInfo : sales_info,
             salesTotals: sales_totals
@@ -496,7 +532,7 @@ app.get("/orders", async(req,res)=>{
     try{
         order_list = null
 
-        //Get list of orders from publisher
+        //Get list of orders from publishers
         const getWarehouseOrders = await pool.query("SELECT * FROM publisher_orders");
         
         //If list is not empty
@@ -517,7 +553,10 @@ app.get("/orders", async(req,res)=>{
 //Displays page where store owner can add a book
 app.get("/addbook", async(req,res)=>{
     try{
+        //If book was added successfully, this will be true.Otherwise false
         success =  req.query.success
+        
+        //Render the page
         res.render("pages/addbook", {
             success : success
         });
@@ -602,10 +641,12 @@ app.post("/addbook", async(req,res)=>{
                 }
                 const addBookAuth = await pool.query("insert into book_auth values($1,$2)",[auth_id,isbn])
             }
-        }   
+        }
+        //Redirect user for successful book add   
         res.redirect("/addbook?success=true")
     }
     catch (err){
+        //Redirect user for unsuccessful book add
         res.redirect("/addbook?success=false")
         console.error(err.message);
     }
@@ -616,7 +657,11 @@ app.get("/removebook", async(req,res)=>{
     try{
         //Get list of books with their isbn,name and status
         getBookStatuses = await pool.query("SELECT name,isbn,isremoved from book");
+        
+        //This will be true when the removal was a success. Otherwise false
         success =  req.query.success
+        
+        //Render the page
         res.render("pages/removebook", {
             success : success,
             books: getBookStatuses.rows
@@ -633,15 +678,18 @@ app.post("/removebook", async(req,res)=>{
         //Set the isremoved boolean for the book store to true
         isbn = req.body.isbn
         const allBooks = await pool.query("UPDATE book SET isRemoved=TRUE WHERE isbn=$1",[isbn]);
+        
+        //Redirect user for a successful book removal
         res.redirect("/removebook?success=true")
     }
     catch (err){
+        //Redirect user for an unsuccessful book removal
         res.redirect("/removebook?success=false")
         console.error(err.message);
     }
 })
 
-
+//Listen on port 3000
 app.listen(3000, () => {
     console.log("server running on port 3000");
 })

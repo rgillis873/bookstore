@@ -11,8 +11,12 @@ html
                     img.card-img-top.text-center(src='/images/open-book.png' alt='book' style='width: 15%; height:15% ')
             .card-body
                 h5.card-title #{book.name}
-                p.card-text
-                    | #{book.description}
+                if book.description.length > 2
+                    p.card-text
+                        | #{book.description}
+                else
+                    p.card-text
+                        | This book has no description
             ul.list-group.list-group-flush
                 li.list-group-item Rating: #{bookRating}
                 li.list-group-item Author(s): #{book.authors}

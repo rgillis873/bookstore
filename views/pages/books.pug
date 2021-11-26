@@ -45,8 +45,10 @@ html
                         .card-deck
                         each book in books
                             .card(style='width: 18rem;')
-                                //img.card-img-top(src='/images/open-book.png' alt=`${book.name}`)
-                                img.card-img-top(src=`${book.cover_image}` alt=`${book.name}` style="height:200px")
+                                if book.cover_image
+                                    img.card-img-top(src=`${book.cover_image}` alt=`${book.name}` style="height:200px")
+                                else
+                                    img.card-img-top(src='/images/open-book.png' alt=`${book.name}` style="height:200px")
                                 .card-body
                                     h5.card-title #{book.name}
                                     p.card-text

@@ -69,7 +69,7 @@ html
                     input#publisher_phone.form-control(type='text' placeholder='123-456-7891,987-654-3211' name="publisher_phone" maxlength='52' required)
                 .form-group.col-md-6
                     label(for='publisher_account') Publisher Bank Account Number 
-                    input#publisher_account.form-control(type='text' placeholder='123444' name="publisher_account" maxlength='15' required)
+                    input#publisher_account.form-control(type='text' placeholder='123444' name="publisher_account" maxlength='9' required)
             button.btn.btn-primary(type='submit') Add Book 
         if success && success == 'false'
             h3 Sorry, unable to add book to the store.

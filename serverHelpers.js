@@ -20,7 +20,8 @@ module.exports = {
                 //User did an exact match search for book name
                 if(query.exact_match){
                     where.push("name='"+query.book_name+"'")
-        
+                
+                //User did not do exact match for book name
                 }else{
                     where.push("Lower(name) LIKE Lower('%"+query.book_name+"%')")
                 }
@@ -56,26 +57,10 @@ module.exports = {
         return select_string + from_string + where_string
     },
 
-    //Handles the merging of cart items from a user who has just logged in. Returns the new cart id for the user
-    mergeCarts: async function(cartId, user_name){
+    //Handles the merging of cart items from a user who has just logged in.
+    mergeCarts: async function(cartId, user_name, user_cart_id){
         try {
-            getUserCartId = await pool.query("select cart_id from user_cart where username=$1",[user_name])
-
-            user_cart_id = null
-
-            //A cart alreadt exists for this user
-            if(getUserCartId.rows.length > 0){
-                user_cart_id = getUserCartId.rows[0].cart_id
-            }else{
-                //Create a cart
-                createCartForUser = await pool.query("insert into cart values(default) returning cart_id")
-                user_cart_id = createCartForUser.rows[0].cart_id
-            
-                //Add a reference for that cart for the user
-                addUserCart = await pool.query('insert into user_cart values($1,$2)',[user_cart_id,user_name])
-            }
-        
-            //Get the merged cart 
+            //Get the merged cart values
             getMergedCartValues = await pool.query('select * from merged_rows($1,$2)',[cartId,user_cart_id])
 
             //Update the cart quantities
@@ -88,12 +73,15 @@ module.exports = {
 
             //Delete the old, not logged in cart items
             deleteCartItems = await pool.query('delete from book_cart where cart_id=$1',[cartId])
+            
+            //Delete the old cart
+            deleteCart = await pool.query('delete from cart where cart_id=$1',[cartId])
 
-            return user_cart_id
+            return
 
         } catch (err) {
             console.log(err.message)
-            return null
+            return
         }
         
     },
@@ -116,16 +104,11 @@ module.exports = {
         expiry = body.bill_expiry
         cvv = body.bill_cvv
 
-        //Add billing info to db. Return bill id
-        createBilling = await pool.query('insert into billing values(default, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)' 
-            +' returning bill_id',[first_name,last_name, phone_num, street_num_name, apt, city,province,country,post_code,email,
-            credit_num, expiry, cvv])
+        //Add billing info to db
+        createBilling = await pool.query('insert into billing values(default, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,$14)' 
+            ,[first_name,last_name, phone_num, street_num_name, apt, city,province,country,post_code,email,
+            credit_num, expiry, cvv, order_id])
         
-        bill_id = createBilling.rows[0].bill_id
-
-        //Create reference for the billing info for the order number
-        createBillOrderReference = await pool.query('insert into order_bill values($1,$2)',[order_id,bill_id])
-
         return 
 
     },
@@ -145,33 +128,23 @@ module.exports = {
         country = body.ship_country
         post_code = body.ship_post
 
-        //Add shipping info to db. Returns ship id
-        createShipping = await pool.query('insert into shipping values(default, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)' 
-            +' returning ship_id',[first_name,last_name, phone_num, street_num_name, apt, city,province,country,post_code,email])
+        //Add shipping info to db
+        createShipping = await pool.query('insert into shipping values(default, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)' 
+            ,[first_name,last_name, phone_num, street_num_name, apt, city,province,country,post_code,email, order_id])
         
-        ship_id = createShipping.rows[0].ship_id
-
-        //Create a reference for the shipping for the order number
-        createShipOrderReference = await pool.query('insert into order_ship values($1,$2)',[order_id,ship_id])
-
         return 
     },
 
     //Handles adding delivery and tracking info to the db for an order
     handleDelivery: async function(order_id){
-
-        //Add the delivery to the db .Returns the delivery id
-        addDelivery = await pool.query('insert into delivery values(default,$1,$2,$3,$4) returning delivery_id',['Toronto','Ontario','Canada',3])
+  
+        //Add the delivery to the db
+        addDelivery = await pool.query('insert into delivery values(default,$1,$2,$3,$4,$5)',['Toronto','Ontario','Canada',3, order_id])
         
-        delivery_id = addDelivery.rows[0].delivery_id
-
-        //Add reference for the delivery and order
-        addOrderTrack = await pool.query('insert into track_order values($1,$2)',[order_id,delivery_id])
-
         return
     },
 
-    //Handles querying for sales report info
+    //Handles querying for sales report info. Returns the selected rows from the db
     handleReport: async function(query){
 
         //Construct the where string for the query
@@ -182,6 +155,7 @@ module.exports = {
         //Query seperate view for getting reports for authors
         if(query.author  && query.author.length > 0){
             getSalesInfo = await pool.query('select * from author_sale_info '+where_string)
+        //All other reports
         }else{
             getSalesInfo = await pool.query('select * from book_genre_sale_info '+where_string)
         }
@@ -189,7 +163,7 @@ module.exports = {
         return getSalesInfo.rows
     },
 
-    //Handles retrieving the summed number of books,sales and expenses for reports
+    //Handles retrieving the summed number of books,sales and expenses for reports.Returns selected rows from db
     handleTotals: async function(query){
 
         //Construct the where string for the query
@@ -201,12 +175,13 @@ module.exports = {
         if(query.author && query.author.length > 0){
             getSalesTotals = await pool.query('select sum(quantity) as tot_quantity,'+
                 'sum(sale_tot) as tot_sales,'+
-                'sum(exp_tot) as tot_expense '+
+                'sum(amount) as tot_expense '+
                 'from author_sale_info '+ where_string)
+        //All other reports
         }else{
             getSalesTotals = await pool.query('select sum(quantity) as tot_quantity,'+
             'sum(sale_tot) as tot_sales,'+
-            'sum(exp_tot) as tot_expense '+
+            'sum(amount) as tot_expense '+
             'from book_genre_sale_info '+ where_string)
         }
 
@@ -214,8 +189,9 @@ module.exports = {
     }
 }
 
-//Builds the where part of the query for sales info.Returns strings
+//Builds the where part of the query for sales info.Returns the where string
 function buildSalesWhereString(query){
+    //Get query criteria
     genre = query.genre
     author = query.author
     year = query.year
@@ -250,6 +226,7 @@ function buildSalesWhereString(query){
         where.push("EXTRACT(month FROM sale_date)="+parseInt(month))
     }
 
+    //If there was a criteria specified, construct the where string
     if(where.length > 0){
         where_string = "where "+ where.join(" and ")    
     }

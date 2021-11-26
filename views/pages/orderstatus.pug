@@ -6,11 +6,11 @@ html
         if orderid
             h2 Order Successful
             br
-            b4 Your order id is: #{orderid}
+            h4 Your order id is: #{orderid}
         else
             h2 Order Unsuccessful
             br
-            b4 Your order could not be placed.
+            h4 Your order could not be placed.
             if stock_low
-            br
-            b4 Not enough stock to complete the order 
+                br
+                h4 Not enough stock to complete the order 

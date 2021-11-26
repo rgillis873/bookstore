@@ -1,0 +1,53 @@
+html
+    head
+        title Look Inna Book BookStore
+        include ./adminHeader.pug
+    body
+    h2 Create a Report
+        br
+        br
+        .div.text-center
+            h3 Choose Options for Sales Report
+            br
+            br
+            form.align-items-center(action='/reports' method='get')
+                .form-row
+                    select.form-select.mx-auto(aria-label='Genre' name='genre')
+                        option(selected value='') Select a Genre
+                            for genre in genres
+                                option(value=`${genre.genre}`) #{genre.genre}
+                br
+                br
+                .form-row    
+                    select.form-select.mx-auto(aria-label='Author' name='author')
+                        option(selected value='') Select an Author
+                            for author in authors
+                                option(value=`${author.auth_name}`) #{author.auth_name}
+                br
+                br
+                .form-row    
+                    select.form-select.mx-auto(aria-label='isbn' name='isbn')
+                        option(selected value='') Select an Book
+                            for book in books
+                                option(value=`${book.isbn}`) #{book.name}
+                br
+                br
+                .form-row    
+                    select.form-select.mx-auto(aria-label='month' name='month')
+                        option(selected value='') Select a Month
+                            - var months = ['January','February','March','April','May','June','July','August','September','October','November', 'December']
+                            - var month_num = 1
+                            for month in months
+                                option(value=`${month_num}`) #{month}
+                                - month_num = month_num + 1
+                br
+                br
+                .form-row    
+                    select.form-select.mx-auto(aria-label='year' name='year')
+                        option(selected value='') Select a Year
+                        option(value='2021') 2021
+                        option(value='2020') 2020
+                br
+                br
+                .form-row
+                    button.btn.btn-primary.my-2.my-sm-0.mx-auto(type='submit' name='report') Generate Report
