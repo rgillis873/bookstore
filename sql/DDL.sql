@@ -31,7 +31,7 @@ create table book(
 	stock int default 20,
 	pub_id int not null,
 	pub_percent int not null,
-	isRemoved boolean default FALSE,
+	isremoved boolean default FALSE,
 	primary key(isbn),
 	foreign key(pub_id) references publisher(pub_id)
 );

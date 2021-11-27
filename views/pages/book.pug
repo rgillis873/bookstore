@@ -24,7 +24,7 @@ html
                 li.list-group-item Publisher: #{book.pub_name}
                 li.list-group-item ISBN: #{book.isbn}
                 li.list-group-item Price: $#{book.price}
-                li.list-group-item Genre #{book.genre}
+                li.list-group-item Genre: #{book.genre}
             .card-body
                 form(action='/cart' method='post')
                     input#quantity(type='number' name='quantity' min='1' value='1')
