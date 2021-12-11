@@ -8,7 +8,7 @@ module.exports = {
         
         where = []
         select_string = "SELECT * "
-        from_string = "FROM booksAuthors "
+        from_string = "FROM booksauthors "
         where_string = ""
         
         //If there are extra query parameters for the book search
@@ -58,7 +58,7 @@ module.exports = {
     },
 
     //Handles the merging of cart items from a user who has just logged in.
-    mergeCarts: async function(cartId, user_name, user_cart_id){
+    mergeCarts: async function(cartId, user_cart_id){
         try {
             //Get the merged cart values
             getMergedCartValues = await pool.query('select * from merged_rows($1,$2)',[cartId,user_cart_id])
@@ -104,10 +104,19 @@ module.exports = {
         expiry = body.bill_expiry
         cvv = body.bill_cvv
 
+        //Add address if it doesn't already exist. Get id of the address whether it existed or not
+        addAddress = await pool.query('select * from insert_or_return_address', [street_num_name, apt, city, province, country, post_code])
+
+        //Get the add_id
+        add_id = addAddress.rows[0].integer
+
+        //Add credit card to db if it wasn't already there
+        addCreditCard = await pool.query('insert into credit_card values($1,$2,$3) on conflict do nothing',[credit_num, expiry, cvv])
+
         //Add billing info to db
-        createBilling = await pool.query('insert into billing values(default, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,$14)' 
-            ,[first_name,last_name, phone_num, street_num_name, apt, city,province,country,post_code,email,
-            credit_num, expiry, cvv, order_id])
+        createBilling = await pool.query('insert into billing values(default, $1, $2, $3, $4, $5, $6, $7)' 
+            ,[first_name,last_name, phone_num, add_id,email,
+            credit_num, order_id])
         
         return 
 
@@ -127,6 +136,12 @@ module.exports = {
         province = body.ship_prov
         country = body.ship_country
         post_code = body.ship_post
+
+        //Add address if it doesn't already exist. Get id of the address whether it existed or not
+        addAddress = await pool.query('select * from insert_or_return_address', [street_num_name, apt, city, province, country, post_code])
+
+        //Get the add_id
+        add_id = addAddress.rows[0].integer
 
         //Add shipping info to db
         createShipping = await pool.query('insert into shipping values(default, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)' 

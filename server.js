@@ -210,7 +210,7 @@ app.post("/signin", async(req,res)=>{
             //the pre-existing items in the logged in user's cart and 
             //assign a new cart number.Otherwise, get their cart id
             if(req.session.cartId){
-                mergeCarts = await helperFunctions.mergeCarts(req.session.cartId, req.session.user_name, user_cart_id)
+                mergeCarts = await helperFunctions.mergeCarts(req.session.cartId, user_cart_id)
             }
 
             //Assign the user's cart to the user
@@ -588,9 +588,17 @@ app.post("/addbook", async(req,res)=>{
         //Add publisher if they don't exist
         addPublisher = ""
         if(checkPublisher.rows.length == 0){
-            addPublisher = await pool.query("insert into publisher(pub_name,street_num_name,office_num,city,province,country,post_code"
-                +",email,bank_account) values($1,$2,$3,$4,$5,$6,$7,$8,$9) returning pub_id",[pub_name,street_num_name,office_num,city,province,country
-                    ,post_code,email,bank_account])
+
+            //Add address if it doesn't already exist. Get id of the address whether it existed or not
+            addAddress = await pool.query('select * from insert_or_return_address', [street_num_name, office_num,
+                 city, province, country, post_code])
+
+            //Get the add_id
+            add_id = addAddress.rows[0].integer
+
+            
+            addPublisher = await pool.query("insert into publisher(pub_name,street_num_name,add_id,email,bank_account)"
+                +"values($1,$2,$3,$4) returning pub_id",[pub_name,add_id,email,bank_account])
         }
 
         //Get publisher id

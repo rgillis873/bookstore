@@ -1,12 +1,22 @@
---Add Publishers
-insert into publisher values(1,'Andrews McMeel Publishing','15 Ruddy Way',null,'New York','New York','USA','K12-6R9','mcmeelpub@gmail.com',4591822);
-insert into publisher values(2,'Villard','15 Cornocopia Dr',null,'Manhattan','New York','USA','K3R-7R0','villardpub@gmail.com',2765198);
-insert into publisher values(3, 'Hachette Books','91 Docel Dr','Floor A','Manhattan','New York','USA','K3R-7P9','hachettepub@gmail.com',2769999);
-insert into publisher values(4, 'Random House Canada','1131 York Ave',null,'Toronto','Ontario','Canada','Q9L-7R0','randomhousepub@gmail.com',2764599);
-insert into publisher values(5, 'Bloomsbury Childrens Books','9 Dursley Ln.',null,',London','Middlesex','England','P17-7R0','bloomsburypub@gmail.com',8258255);
-insert into publisher values(6, 'Harper Collins Canada','15 Degrassi St.','Floor 1-5','Toronto','Ontario','Canada','K1Q-7L9','harperpub@gmail.com',9999222);
-insert into publisher values(7, 'Scholastic Books','99 Degrassi St.','Floor 3-5','Toronto','Ontario','Canada','M2L-7L9','scholasticpub@gmail.com',98989898);
-insert into publisher values(8, 'Tundra Books','89 Overpriced Dr.',null,'Vancouver','British Columbia','Canada','H0H-0H0','tundrapub@gmail.com',71717171);
+--Insert publisher addresses
+insert into address values(1,'15 Ruddy Way',null,'New York','New York','USA','K12-6R9');
+insert into address values(2,'15 Cornocopia Dr',null,'Manhattan','New York','USA','K3R-7R0');
+insert into address values(3,'91 Docel Dr','Floor A','Manhattan','New York','USA','K3R-7P9');
+insert into address values(4,'1131 York Ave',null,'Toronto','Ontario','Canada','Q9L-7R0');
+insert into address values(5,'9 Dursley Ln.',null,',London','Middlesex','England','P17-7R0');
+insert into address values(6,'15 Degrassi St.','Floor 1-5','Toronto','Ontario','Canada','K1Q-7L9');
+insert into address values(7,'99 Degrassi St.','Floor 3-5','Toronto','Ontario','Canada','M2L-7L9');
+insert into address values(8,'89 Overpriced Dr.',null,'Vancouver','British Columbia','Canada','H0H-0H0');
+
+--Insert publisher information
+insert into publisher values(1,'Andrews McMeel Publishing',1,'mcmeelpub@gmail.com',4591822);
+insert into publisher values(2,'Villard',2,'villardpub@gmail.com',2765198);
+insert into publisher values(3, 'Hachette Books',3,'hachettepub@gmail.com',2769999);
+insert into publisher values(4, 'Random House Canada',4,'randomhousepub@gmail.com',2764599);
+insert into publisher values(5, 'Bloomsbury Childrens Books',5,'bloomsburypub@gmail.com',8258255);
+insert into publisher values(6, 'Harper Collins Canada',6,'harperpub@gmail.com',9999222);
+insert into publisher values(7, 'Scholastic Books',7,'scholasticpub@gmail.com',98989898);
+insert into publisher values(8, 'Tundra Books',8,'tundrapub@gmail.com',71717171);
 
 --Add publisher phone numbers
 insert into phone values('232-717-2688',1);
