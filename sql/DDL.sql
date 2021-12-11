@@ -1,15 +1,23 @@
-create table publisher(
-	pub_id serial,
-	pub_name varchar(50) not null,
+create table address(
+	add_id serial,
 	street_num_name varchar(30) not null,
-	office_num varchar(20),
+	apt_num varchar(20),
 	city varchar(30) not null,
 	province varchar(30) not null,
 	country varchar(30) not null,
 	post_code varchar(7) not null,
-	email varchar(50) not null,
-	bank_account int,
-	primary key(pub_id)
+	primary key(add_id),
+	unique (street_num_name, apt_num, city, province, country, post_code)
+);
+
+create table publisher(
+	pub_id serial,
+	pub_name varchar(50) not null,
+	add_id int not null,
+	email varchar(50) not null unique,
+	bank_account int not null unique,
+	primary key(pub_id),
+	foreign key(add_id) references address(add_id)
 );
 
 create table phone(
@@ -23,7 +31,7 @@ create table phone(
 create table book(
 	isbn varchar(13) not null,
 	name varchar(100) not null,
-	genre varchar(15),
+	genre varchar(15) not null,
 	price numeric(5,2) not null,
 	description varchar(500),
 	cover_image varchar(500),
@@ -31,7 +39,7 @@ create table book(
 	stock int default 20,
 	pub_id int not null,
 	pub_percent int not null,
-	isremoved boolean default FALSE,
+	is_removed boolean default FALSE,
 	primary key(isbn),
 	foreign key(pub_id) references publisher(pub_id)
 );
@@ -62,7 +70,7 @@ create table review(
 
 create table warehouse_order(
 	wo_id serial,
-	wo_date date,
+	wo_date date not null,
 	quantity int not null,
 	pub_id int not null,
 	isbn varchar(13) not null,
@@ -90,7 +98,7 @@ create table store_user(
 	username varchar(30) not null,
 	first_name varchar(30) not null,
 	last_name varchar(30) not null,
-	email varchar(50) not null,
+	email varchar(50) not null unique,
 	user_pass varchar(20) not null,
 	cart_id int not null,
 	primary key(username),
@@ -118,7 +126,7 @@ create table item(
 create table sale(
 	sale_id serial not null,
 	quantity int not null,
-	sale_date date,
+	sale_date date not null,
 	isbn varchar(13) not null,
 	order_id int not null,
 	primary key(sale_id),
@@ -148,23 +156,25 @@ create table delivery(
 	foreign key (order_id) references store_order(order_id)
 );
 
+create table credit_card(
+	credit_num varchar(16),
+	credit_expiry varchar(5) not null,
+	credit_cvv varchar(3) not null,
+	primary key(credit_num)
+);
+
 create table billing(
 	bill_id serial,
 	first_name varchar(30) not null,
 	last_name varchar(30) not null,
 	phone_num varchar(13) not null,
-	street_num_name varchar(30) not null,
-	apt_num varchar(20),
-	city varchar(30) not null,
-	province varchar(30) not null,
-	country varchar(30) not null,
-	post_code varchar(7) not null,
+	add_id int not null,
 	email varchar(50) not null,
 	credit_num varchar(16) not null,
-	credit_expiry varchar(5) not null,
-	credit_cvv varchar(3) not null,
 	order_id int not null,
 	primary key(bill_id),
+	foreign key (add_id) references address(add_id),
+	foreign key (credit_num) references credit_card(credit_num),
 	foreign key (order_id) references store_order(order_id)
 );
 
@@ -173,15 +183,11 @@ create table shipping(
 	first_name varchar(30) not null,
 	last_name varchar(30) not null,
 	phone_num varchar(13) not null,
-	street_num_name varchar(30) not null,
-	apt_num varchar(20),
-	city varchar(30) not null,
-	province varchar(30) not null,
-	country varchar(30) not null,
-	post_code varchar(7) not null,
+	add_id int not null,
 	email varchar(50) not null,
 	order_id int not null,
 	primary key(ship_id),
+	foreign key (add_id) references address(add_id),
 	foreign key (order_id) references store_order(order_id)
 );
 
