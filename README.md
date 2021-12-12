@@ -20,3 +20,6 @@ node server.js
 
 #### Finally, to view the book store site, visit the link below:
 http://localhost:3000/
+
+#### To view the admin area of the store, go to:
+http://localhost:3000/admin
