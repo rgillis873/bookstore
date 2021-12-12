@@ -165,16 +165,20 @@ app.post("/register", async(req,res)=>{
         
         //If successful, set the username and redirect to the registration result page
         if(addUser.rowCount > 0){
-            req.session.user_name = user_name;
 
             //Assign the correct cart id to the logged in user
             old_cart_id = req.session.cartId
             req.session.cartId = cart_id
 
-            //Move items into the assigned cart for the user if there were any
-            if(old_cart_id){
+            //Move items into the assigned cart for the user if there were any as long as the user wasn't already signed in
+            //as a different user
+            if(old_cart_id && !req.session.user_name){
                 changeCartItems = await pool.query('update book_cart set cart_id=$1 where cart_id=$2',[cart_id,old_cart_id])
             }
+
+            //Set username
+            req.session.user_name = user_name;
+
         //If unsuccessful registering, delete the cart
         }else{
             //Delete the cart created for the user

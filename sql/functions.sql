@@ -1,6 +1,6 @@
 --Finds and returns the average rating for a book based on
 --its reviews
-create function avg_Rating(book_isbn varchar(13))
+create function avg_rating(book_isbn varchar(13))
 	returns numeric
 	as
 	$$

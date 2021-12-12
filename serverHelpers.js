@@ -8,7 +8,7 @@ module.exports = {
         
         where = []
         select_string = "SELECT * "
-        from_string = "FROM booksauthors "
+        from_string = "FROM books_authors "
         where_string = ""
         
         //If there are extra query parameters for the book search
