@@ -53,7 +53,8 @@ app.get("/books", async(req,res)=>{
             userName : req.session.user_name,
             genres: getGenres.rows,
             authors: getAuthors.rows,
-            books: allBooks.rows
+            books: allBooks.rows,
+            query: req.query
         });
     }
     catch (err){
@@ -371,36 +372,8 @@ app.post("/cart", async(req,res)=>{
             req.session.cartId = createCart.rows[0].cart_id
         }
 
-        //If user is removing a book from the cart
-        if(req.body.remove){
-            //Get the isbn of the book being removed
-            isbn = req.body.remove
-
-            //Delete the book from the cart
-            const updateCartContents = await pool.query("delete from book_cart where isbn=$1 and cart_id=$2", [isbn,req.session.cartId]);
-        }
-
-        //If user is adding more books to the cart
-        else if(req.body.add){
-            //Get the isbn and quantity of the book being added
-            isbn = req.body.add
-            new_quantity = req.body.quantity
-            
-            //Add the book to the cart. May be adding more to a book that is already in the cart
-            const addOrUpdateCartContents = await pool.query("insert into book_cart values($1,$2,$3) on conflict (cart_id,isbn) do update set"
-                +" quantity=book_cart.quantity+$3",[isbn, req.session.cartId, new_quantity]);
-        }
-
-        //If user is updating the quantity of a book in their cart
-        else if(req.body.update){
-            //Get the isbn and new quantity of the book being updated
-            isbn = req.body.update
-            new_quantity = req.body.quantity
-
-            //Update the quantity of the book in the cart
-            const updateCartContents = await pool.query("update book_cart set quantity=$1 where isbn=$2 and cart_id=$3",
-                [new_quantity, isbn, req.session.cartId]);
-        }
+        //Update the contents of the cart
+        const updateCart = await serverHelpers.updateCart(req.session.cartId, req.body)
 
         //Reload the page for the user
         res.redirect("back")
@@ -569,87 +542,22 @@ app.get("/addbook", async(req,res)=>{
 //Handles when owner tries to add a book to the book store
 app.post("/addbook", async(req,res)=>{
     try{
-        //Get publisher info
-        pub_name = req.body.publisher_name
-        street_num_name = req.body.publisher_street_name
-        office_num = req.body.publisher_office
-        city = req.body.publisher_city
-        province = req.body.publisher_province
-        country = req.body.publisher_country
-        post_code = req.body.publisher_post
-        email = req.body.publisher_email
-        phone_num = req.body.publisher_phone
-        bank_account = req.body.publisher_account 
 
-        //Check if publisher already exists
-        checkPublisher = await pool.query("select pub_id from publisher where pub_name=$1 and email=$2",[pub_name, email])
-        
-
-        //Add publisher if they don't exist
-        addPublisher = ""
-        if(checkPublisher.rows.length == 0){
-
-            //Add address if it doesn't already exist. Get id of the address whether it existed or not
-            addAddress = await pool.query('select * from insert_or_return_address', [street_num_name, office_num,
-                 city, province, country, post_code])
-
-            //Get the add_id
-            add_id = addAddress.rows[0].integer
-
-            
-            addPublisher = await pool.query("insert into publisher(pub_name,street_num_name,add_id,email,bank_account)"
-                +"values($1,$2,$3,$4) returning pub_id",[pub_name,add_id,email,bank_account])
-        }
-
-        //Get publisher id
-        pub_id = checkPublisher.rows.length > 0?checkPublisher.rows[0].pub_id:addPublisher.rows[0].pub_id
-
-        //Add publisher phone numbers if it didn't already exist
-        if(checkPublisher.rows.length == 0){
-            phone_numbers = phone_num.split(',')
-            for(let i = 0;i<phone_numbers.length;i++) {
-                addPhone = await pool.query("insert into phone values($1,$2)",[phone_numbers[i], pub_id])
-            }
-        }
-
-        //Get book information
-        book_name = req.body.book_name
-        authors = req.body.authors
-        isbn = req.body.isbn
-        price = parseFloat(req.body.price)
-        genre = req.body.genre
-        page_num = req.body.pages
-        description = JSON.stringify(req.body.description)
-        pub_percent = parseInt(req.body.publisher_percent)
-        cover_image = req.body.cover_image
-        
         //Check if book already exists
-        const checkForBook = await pool.query('select * from book where isbn=$1',[isbn])
-        
+        const checkForBook = await pool.query('select * from book where isbn=$1',[req.body.isbn])
+         
         //If book already exists, changed it's removed status.Otherwise add it to the db
         if(checkForBook.rows.length > 0){
-            const addBackBook = await pool.query('update book set isremoved=FALSE where isbn=$1',[isbn])
+            const addBackBook = await pool.query('update book set is_removed=FALSE where isbn=$1',[req.body.isbn])
         }else{
 
-            //Insert the book into the book relation
-            const addBook = await pool.query("insert into book(isbn,name,genre,price,description,cover_image,pub_id,pub_percent,page_num)"+
-                "values($1, $2, $3, $4, $5,$6,$7,$8,$9)",[isbn,book_name,genre, price,description, cover_image, pub_id,pub_percent,page_num])
-            
-            //Add each of the authors to the author and book_auth relations
-            author_list = authors.split(",")
-            for(let i = 0;i< author_list.length;i++){
-                
-                const checkForAuthor = await pool.query("select auth_id from author where auth_name=$1",[author_list[i]])
-                auth_id = checkForAuthor.rows.length >0? checkForAuthor.rows[0].auth_id: ""
-                
-                //If author doesn't already exist in author relation
-                if(checkForAuthor.rows.length == 0){
-                    const addAuthor = await pool.query("insert into author(auth_name) values($1) returning auth_id",[author_list[i]])
-                    auth_id = addAuthor.rows[0].auth_id
-                }
-                const addBookAuth = await pool.query("insert into book_auth values($1,$2)",[auth_id,isbn])
-            }
+            //Add publisher
+            pub_id = await serverHelpers.handleAddPublisher(req.body)
+
+            //Add book and its' author(s) to the book store
+            addBookAndAuthor = await serverHelpers.handleAddBookAndAuthor(req.body, pub_id)
         }
+
         //Redirect user for successful book add   
         res.redirect("/addbook?success=true")
     }
@@ -664,7 +572,7 @@ app.post("/addbook", async(req,res)=>{
 app.get("/removebook", async(req,res)=>{
     try{
         //Get list of books with their isbn,name and status
-        getBookStatuses = await pool.query("SELECT name,isbn,isremoved from book");
+        getBookStatuses = await pool.query("SELECT name,isbn,is_removed from book");
         
         //This will be true when the removal was a success. Otherwise false
         success =  req.query.success
@@ -685,7 +593,7 @@ app.post("/removebook", async(req,res)=>{
     try{
         //Set the isremoved boolean for the book store to true
         isbn = req.body.isbn
-        const allBooks = await pool.query("UPDATE book SET isRemoved=TRUE WHERE isbn=$1",[isbn]);
+        const removedBook = await pool.query("UPDATE book SET is_removed=TRUE WHERE isbn=$1",[isbn]);
         
         //Redirect user for a successful book removal
         res.redirect("/removebook?success=true")

@@ -9,14 +9,14 @@ html
                 .col-sm-2(style='background-color:slategrey; min-height:100%;')
                     h4.mb-3 Search Books
                     form.form-inline.my-2.my-lg-0(action='/books' method='get')
-                        input.form-control.mr-sm-2(type='search' placeholder='Search Books By Name' name='book_name')
+                        input.form-control.mr-sm-2(type='search' placeholder='Search Books By Name' name='book_name' value=`${query && query.book_name ? query.book_name : ""}`)
                         br
                         br
-                        input(type='checkbox'  name='exact_match' value='false' oninput='this.value = this.value == `true`?false:true')
+                        input(type='checkbox'  name='exact_match' value=`${query && query.exact_match ? query.exact_match : false}` oninput='this.value = this.value == `true`?false:true')
                         label(for='exact_match') Exact Name Match
                         br
                         br
-                        input.form-control.mr-sm-2(type='search' placeholder='Search Books By ISBN' name='book_isbn')
+                        input.form-control.mr-sm-2(type='search' placeholder='Search Books By ISBN' name='book_isbn' value=`${query && query.book_isbn ? query.book_isbn : ""}`)
                         br
                         br
                         select.form-select(aria-label='Genre' name='genre')
@@ -33,13 +33,12 @@ html
                         br
                         row.col-md-6(style='text-align: left;')
                             label(for='price_range') Price Range
-                            input(type='range' value='100' min='0' max='100' name='price_range' oninput='this.nextElementSibling.value = `$0 to $` + this.value')
-                            output $0 to $100
+                            input(type='range' value=`${query && query.price_range ? query.price_range : '100'}` min='0' max='100' name='price_range' oninput='this.nextElementSibling.value = `$0 to $` + this.value')
+                            output $0 to $#{query && query.price_range ? query.price_range : 100}
                         br
                         br
                         row.col-md-12
                             button.btn.btn-primary-success.my-2.my-sm-0(type='submit') Search
-                    
                 if books.length
                     .col-sm-10(id="two" class="book_holder" style="display:flex; flex-wrap:wrap;")
                         .card-deck

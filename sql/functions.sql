@@ -123,7 +123,7 @@ create function complete_store_order()
 create function insert_or_return_address(street varchar(30), apt varchar(20),
 	new_city varchar(30), new_prov varchar(30),new_country varchar(30), new_post varchar(7))
 		returns int	
-		as 
+		as
 		$$
 		declare address_id int;
 		begin

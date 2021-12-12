@@ -86,6 +86,126 @@ module.exports = {
         
     },
 
+    //Handles when a user makes an update to their cart of books
+    updateCart: async function(cartId, body){
+        
+        //If user is removing a book from the cart
+        if(body.remove){
+            //Get the isbn of the book being removed
+            isbn = body.remove
+
+            //Delete the book from the cart
+            const updateCartContents = await pool.query("delete from book_cart where isbn=$1 and cart_id=$2", [isbn,cartId]);
+        }
+
+        //If user is adding more books to the cart
+        else if(body.add){
+            
+            //Get the isbn and quantity of the book being added
+            isbn = body.add
+            new_quantity = body.quantity
+            
+            //Add the book to the cart. May be adding more to a book that is already in the cart
+            const addOrUpdateCartContents = await pool.query("insert into book_cart values($1,$2,$3) on conflict (cart_id,isbn) do update set"
+                +" quantity=book_cart.quantity+$3",[isbn, cartId, new_quantity]);
+        }
+
+        //If user is updating the quantity of a book in their cart
+        else if(body.update){
+            
+            //Get the isbn and new quantity of the book being updated
+            isbn = body.update
+            new_quantity = body.quantity
+
+            //Update the quantity of the book in the cart
+            const updateCartContents = await pool.query("update book_cart set quantity=$1 where isbn=$2 and cart_id=$3",
+                [new_quantity, isbn, cartId]);
+        }
+    },
+
+    //Handles adding a publisher to the bookstore
+    handleAddPublisher: async function(body){
+        
+        //Get publisher info
+        pub_name = body.publisher_name
+        street_num_name = body.publisher_street_name
+        office_num = body.publisher_office
+        city = body.publisher_city
+        province = body.publisher_province
+        country = body.publisher_country
+        post_code = body.publisher_post
+        email = body.publisher_email
+        phone_num = body.publisher_phone
+        bank_account = body.publisher_account 
+ 
+        //Check if publisher already exists
+        checkPublisher = await pool.query("select pub_id from publisher where pub_name=$1 and email=$2",[pub_name, email])
+         
+        //Set publisher id if it already existed
+        pub_id = checkPublisher.rows.length > 0 ?checkPublisher.rows[0].pub_id : null
+ 
+        //Add publisher if they don't exist
+        if(checkPublisher.rows.length == 0){
+ 
+            //Add address if it doesn't already exist. Get id of the address whether it existed or not
+            addAddress = await pool.query('select * from insert_or_return_address($1,$2,$3,$4,$5,$6)', [street_num_name, office_num,
+                  city, province, country, post_code])
+ 
+            //Get the add_id
+            add_id = addAddress.rows[0].insert_or_return_address
+ 
+             
+            addPublisher = await pool.query("insert into publisher(pub_name, add_id,email,bank_account)"
+                 +"values($1,$2,$3,$4) returning pub_id",[pub_name,add_id,email,bank_account])
+
+            pub_id = addPublisher.rows[0].pub_id
+
+            //Add publisher phone numbers if it didn't already exist
+            phone_numbers = phone_num.split(',')
+            for(let i = 0;i<phone_numbers.length;i++) {
+                addPhone = await pool.query("insert into phone values($1,$2)",[phone_numbers[i], pub_id])
+            }
+         }
+ 
+         return pub_id
+    },
+
+    //Handles adding a new book and its' author(s) to the book store
+    handleAddBookAndAuthor: async function(body, pub_id){
+        
+        //Get book information
+        book_name = body.book_name
+        authors = body.authors
+        isbn = body.isbn
+        price = parseFloat(body.price)
+        genre = body.genre
+        page_num = body.pages
+        description = JSON.stringify(body.description)
+        pub_percent = parseInt(body.publisher_percent)
+        cover_image = body.cover_image
+         
+        //Insert the book into the book relation
+        const addBook = await pool.query("insert into book(isbn,name,genre,price,description,cover_image,pub_id,pub_percent,page_num)"+
+                 "values($1, $2, $3, $4, $5,$6,$7,$8,$9)",[isbn,book_name,genre, price,description, cover_image, pub_id,pub_percent,page_num])
+             
+        //Add each of the authors to the author and book_auth relations
+        author_list = authors.split(",")
+        for(let i = 0;i< author_list.length;i++){
+                 
+            const checkForAuthor = await pool.query("select auth_id from author where auth_name=$1",[author_list[i]])
+            auth_id = checkForAuthor.rows.length >0? checkForAuthor.rows[0].auth_id: ""
+                 
+            //If author doesn't already exist in author relation
+            if(checkForAuthor.rows.length == 0){
+                const addAuthor = await pool.query("insert into author(auth_name) values($1) returning auth_id",[author_list[i]])
+                auth_id = addAuthor.rows[0].auth_id
+            }
+            const addBookAuth = await pool.query("insert into book_auth values($1,$2)",[auth_id,isbn])
+        }
+        
+        return
+    },
+
     //Handles adding billing info for an order to the db
     handleBilling: async function(body, order_id){
         
@@ -105,10 +225,10 @@ module.exports = {
         cvv = body.bill_cvv
 
         //Add address if it doesn't already exist. Get id of the address whether it existed or not
-        addAddress = await pool.query('select * from insert_or_return_address', [street_num_name, apt, city, province, country, post_code])
+        addAddress = await pool.query('select * from insert_or_return_address($1,$2,$3,$4,$5,$6)', [street_num_name, apt, city, province, country, post_code])
 
         //Get the add_id
-        add_id = addAddress.rows[0].integer
+        add_id = addAddress.rows[0].insert_or_return_address
 
         //Add credit card to db if it wasn't already there
         addCreditCard = await pool.query('insert into credit_card values($1,$2,$3) on conflict do nothing',[credit_num, expiry, cvv])
@@ -138,14 +258,15 @@ module.exports = {
         post_code = body.ship_post
 
         //Add address if it doesn't already exist. Get id of the address whether it existed or not
-        addAddress = await pool.query('select * from insert_or_return_address', [street_num_name, apt, city, province, country, post_code])
+        addAddress = await pool.query('select * from insert_or_return_address($1,$2,$3,$4,$5,$6)',
+            [street_num_name, apt, city, province, country, post_code])
 
         //Get the add_id
-        add_id = addAddress.rows[0].integer
+        add_id = addAddress.rows[0].insert_or_return_address
 
         //Add shipping info to db
-        createShipping = await pool.query('insert into shipping values(default, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)' 
-            ,[first_name,last_name, phone_num, street_num_name, apt, city,province,country,post_code,email, order_id])
+        createShipping = await pool.query('insert into shipping values(default, $1, $2, $3, $4, $5, $6)' 
+            ,[first_name,last_name, phone_num, add_id,email, order_id])
         
         return 
     },
