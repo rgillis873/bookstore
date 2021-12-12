@@ -1,4 +1,4 @@
---Insert publisher addresses
+--Insert publisher addresses (add_id, street_num_name, apt_num, city, province, country, post_code)
 insert into address values(1,'15 Ruddy Way',null,'New York','New York','USA','K12-6R9');
 insert into address values(2,'15 Cornocopia Dr',null,'Manhattan','New York','USA','K3R-7R0');
 insert into address values(3,'91 Docel Dr','Floor A','Manhattan','New York','USA','K3R-7P9');
@@ -8,7 +8,7 @@ insert into address values(6,'15 Degrassi St.','Floor 1-5','Toronto','Ontario','
 insert into address values(7,'99 Degrassi St.','Floor 3-5','Toronto','Ontario','Canada','M2L-7L9');
 insert into address values(8,'89 Overpriced Dr.',null,'Vancouver','British Columbia','Canada','H0H-0H0');
 
---Insert publisher information
+--Insert publisher information (pub_id, pub_name, add_id, email, bank_account)
 insert into publisher values(1,'Andrews McMeel Publishing',1,'mcmeelpub@gmail.com',4591822);
 insert into publisher values(2,'Villard',2,'villardpub@gmail.com',2765198);
 insert into publisher values(3, 'Hachette Books',3,'hachettepub@gmail.com',2769999);
@@ -18,7 +18,7 @@ insert into publisher values(6, 'Harper Collins Canada',6,'harperpub@gmail.com',
 insert into publisher values(7, 'Scholastic Books',7,'scholasticpub@gmail.com',98989898);
 insert into publisher values(8, 'Tundra Books',8,'tundrapub@gmail.com',71717171);
 
---Add publisher phone numbers
+--Add publisher phone numbers (phone_num, pub_id)
 insert into phone values('232-717-2688',1);
 insert into phone values('613-717-2688',1);
 insert into phone values('855-933-2628',2);
@@ -85,7 +85,7 @@ insert into book(name, isbn,page_num, price, genre, cover_image, description, pu
 insert into book(name, isbn,page_num, price, genre, cover_image, description, pub_percent, pub_id) values('Murder on the Line', '0553540947', 214, 8.61, 'Mystery', 'https://www.amazon.ca/images/I/41JJQHoTV8L._SX259_BO1,204,203,200_.jpg', 'Jessica and Elizabeth Wakefield are looking forward to another summer as interns at the Sweet Valley News. Elizabeth can''t wait to get to work as a reporter; Jessica can''t wait to spend time with the gorgeous new editor. Jessica is even more excited when she discovers that a crossed telephone line allows her to eavesdrop on other people''s conversations. She loves listening in on the private lives of Sweet Valley -- until she overhears plans for a murder!',15,4);
 insert into book(name, isbn,page_num, price, genre, cover_image, description, pub_percent, pub_id) values('R for Revenge', '0553570722', 240, 6.57, 'Mystery', 'https://www.amazon.ca/images/I/51Y2F4M0BSL._SX292_BO1,204,203,200_.jpg', 'Was that a cheer ...  or a scream? The Sweet Valley High cheerleaders have been kidnapped! Co-captains Jessica Wakefield and Heather Mallone thought they''d found the perfect faculty advisor for their cheer squad in Nancy Swanson.  But the cheerleaders don''t know about the dark secret in Nancy''s past.',15,4);
 
---Add authors
+--Add authors (auth_id, auth_name)
 insert into author values(1,'Bill Watterson');
 insert into author values(2,'Jon Krakauer');
 insert into author values(3,'Anthony Kiedis');

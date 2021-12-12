@@ -16,7 +16,9 @@ create function avg_Rating(book_isbn varchar(13))
 	$$
 	language 'plpgsql';
 
---Gets the merged quantities of books for two carts. Returns table
+--Gets the merged quantities of books for two carts. Used for when
+--a guest with items in their cart logs in/registers for the store.
+--Merges the guest items into the user's cart. Returns table
 --of merged quantities
 create function merged_rows(cart_one int, cart_two int)
 	returns table(
@@ -52,7 +54,7 @@ create function cant_fill_order(user_cart_id int)
 	$$ 
 	language 'plpgsql';
 
---Trigger function, makes a warehouse order when stock goes below 10 books.
+--Trigger function. Makes a warehouse order when stock goes below 10 books.
 create function make_warehouse_order()
 	returns trigger
 	as
@@ -78,7 +80,7 @@ create function make_warehouse_order()
 	language 'plpgsql';
 
 --Trigger function, executes when order goes through.
---Adds items from cart to order items,adds the sales and expenses for the items,
+--Adds items from cart to table storing order items, adds the sales and expenses for the items,
 --and then deletes the items from the cart
 create function complete_store_order()
 	returns trigger
@@ -118,7 +120,7 @@ create function complete_store_order()
 	$$
 	language 'plpgsql';
 
---Function to either add a new address if it doesn't already exists. Returns the add_id of the newly added address
+--Function to add a new address if it doesn't already exists. Returns the add_id of the newly added address
 --or the pre-existing address if it was already in the database
 create function insert_or_return_address(street varchar(30), apt varchar(20),
 	new_city varchar(30), new_prov varchar(30),new_country varchar(30), new_post varchar(7))

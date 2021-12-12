@@ -1,3 +1,4 @@
+--Table for storing addresses for shipping,billing or publishers
 create table address(
 	add_id serial,
 	street_num_name varchar(30) not null,
@@ -10,6 +11,7 @@ create table address(
 	unique (street_num_name, apt_num, city, province, country, post_code)
 );
 
+--Table for storing publisher info
 create table publisher(
 	pub_id serial,
 	pub_name varchar(50) not null,
@@ -20,6 +22,7 @@ create table publisher(
 	foreign key(add_id) references address(add_id)
 );
 
+--Table for storing publisher phone numbers
 create table phone(
 	phone_num varchar(13) not null,
 	pub_id int,
@@ -28,6 +31,7 @@ create table phone(
 	
 );
 
+--Table for storing book info
 create table book(
 	isbn varchar(13) not null,
 	name varchar(100) not null,
@@ -44,12 +48,14 @@ create table book(
 	foreign key(pub_id) references publisher(pub_id)
 );
 
+--Table for storing author names and ids
 create table author(
 	auth_id serial,
 	auth_name varchar(50) not null unique,
 	primary key(auth_id)
 );
 
+--Table linking authors to books
 create table book_auth(
 	auth_id int not null,
 	isbn varchar(13) not null,
@@ -58,6 +64,7 @@ create table book_auth(
 	foreign key(isbn) references book(isbn)
 );
 
+--Table for storing book reviews
 create table review(
 	review_id serial,
 	name varchar(30) not null,
@@ -68,6 +75,7 @@ create table review(
 	foreign key(isbn) references book(isbn)
 );
 
+--Table for storing orders made for more books from publishers
 create table warehouse_order(
 	wo_id serial,
 	wo_date date not null,
@@ -79,11 +87,13 @@ create table warehouse_order(
 	foreign key(isbn) references book(isbn)
 );
 
+--Table for storing user cart ids
 create table cart(
 	cart_id serial,
 	primary key(cart_id)	
 );
 
+--Table for storing cart items
 create table book_cart(
 	isbn varchar(13) not null,
 	cart_id int not null,
@@ -93,7 +103,7 @@ create table book_cart(
 	foreign key(cart_id) references cart(cart_id)
 );
 
-
+--Table for storing registered users of the store
 create table store_user(
 	username varchar(30) not null,
 	first_name varchar(30) not null,
@@ -105,6 +115,7 @@ create table store_user(
 	foreign key (cart_id) references cart(cart_id)
 );
 
+--Table for storing orders made by users of the store
 create table store_order(
 	order_id serial,
 	ord_date date,
@@ -114,6 +125,7 @@ create table store_order(
 	foreign key(username) references store_user(username)
 );
 
+--Table for storing items from orders
 create table item(
 	item_id serial,
 	book_name varchar(100) not null,
@@ -123,6 +135,7 @@ create table item(
 	foreign key(order_id) references store_order(order_id)
 );
 
+--Table storing sales from store orders
 create table sale(
 	sale_id serial not null,
 	quantity int not null,
@@ -134,6 +147,7 @@ create table sale(
 	foreign key(order_id) references store_order(order_id)
 );
 
+--Table storing expenses for sales
 create table expense(
 	exp_id serial not null,
 	exp_date date not null,
@@ -145,6 +159,7 @@ create table expense(
 	foreign key(sale_id) references sale(sale_id)
 );
 
+--Table storing delivery info for orders
 create table delivery(
 	delivery_id serial,
 	cur_city varchar(30) not null,
@@ -156,6 +171,7 @@ create table delivery(
 	foreign key (order_id) references store_order(order_id)
 );
 
+--Table for storing credit card numbers used for the store orders
 create table credit_card(
 	credit_num varchar(16),
 	credit_expiry varchar(5) not null,
@@ -163,6 +179,7 @@ create table credit_card(
 	primary key(credit_num)
 );
 
+--Table for storing the billing info from store orders
 create table billing(
 	bill_id serial,
 	first_name varchar(30) not null,
@@ -178,6 +195,7 @@ create table billing(
 	foreign key (order_id) references store_order(order_id)
 );
 
+--Table for storing the shipping info from store orders
 create table shipping(
 	ship_id serial,
 	first_name varchar(30) not null,
@@ -190,51 +208,4 @@ create table shipping(
 	foreign key (add_id) references address(add_id),
 	foreign key (order_id) references store_order(order_id)
 );
-
-
---For searching books
-create view booksAuthors as
-	select isbn,name,price,genre,cover_image, string_agg(auth_name, ',') as authors
-	from book natural join book_auth natural join author
-	where book.is_removed = false
-	group by isbn;
-
---For viewing an individual book page
-create view bookPage as
-	select isbn,name,price,genre,cover_image,description,page_num,pub_name, string_agg(auth_name, ',') as authors
-	from (((book natural join book_auth) natural join author) natural join publisher)
-	group by isbn,pub_name;
-
---For viewing items in carts
-create view get_cart_items as
-	select isbn,quantity,name,price,cart_id,pub_percent,pub_id
-	from book_cart natural join book;
-
---For viewing the items from an order
-create view order_items as
-	select * 
-	from store_order natural join item;
-
---For viewing orders to publisher. Ordered by date (new to old).
-create view publisher_orders as
-	select wo_date,quantity,pub_name,warehouse_order.isbn,name
-	from warehouse_order natural join publisher natural join book
-	order by wo_date desc;
-
---For viewing the sales info of books by isbn, genre, month or year of sale
-create view book_genre_sale_info as
-	select order_id,sale.isbn,quantity, (quantity*price)::numeric(6,2) as sale_tot,sale_date, name,
-	genre,pub_percent,pub_name,bank_account, amount
-	from sale natural join expense natural join book natural join publisher
-	order by sale_date desc;
-
---For viewing the sales info by authors of books. Ordered by date (new to old)
-create view author_sale_info as
-	select order_id,sale.isbn,quantity,auth_name,(quantity*price)::numeric(6,2) as sale_tot,
-	sale_date, name, genre,pub_percent,pub_name,bank_account,amount
-	from sale natural join expense natural join book natural join book_auth 
-	natural join author natural join publisher
-	order by sale_date desc;
-
-
 

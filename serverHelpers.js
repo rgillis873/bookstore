@@ -44,7 +44,7 @@ module.exports = {
 
             //Specified price range for the book search
             if(query.price_range){
-                where.push("price < "+query.price_range+"")
+                where.push("price <= "+query.price_range+"")
             }
 
             //If any where clauses were added, build the where part of the
@@ -307,13 +307,13 @@ module.exports = {
 
         getSalesTotals = null
 
-        //Query seperate view for getting reports for authors
+        //Query seperate view for getting report totals for authors
         if(query.author && query.author.length > 0){
             getSalesTotals = await pool.query('select sum(quantity) as tot_quantity,'+
                 'sum(sale_tot) as tot_sales,'+
                 'sum(amount) as tot_expense '+
                 'from author_sale_info '+ where_string)
-        //All other reports
+        //All other report totals
         }else{
             getSalesTotals = await pool.query('select sum(quantity) as tot_quantity,'+
             'sum(sale_tot) as tot_sales,'+

@@ -68,7 +68,7 @@ app.get("/books/:isbn", async(req,res)=>{
         isbn = req.params.isbn
 
         //Get the book details
-        const bookInfo = await pool.query("SELECT * FROM bookPage where isbn=$1",[isbn])
+        const bookInfo = await pool.query("SELECT * FROM book_page where isbn=$1",[isbn])
         
         //Get the reviews for the book
         const reviewInfo = await pool.query("SELECT * FROM review where isbn=$1",[isbn])
@@ -591,12 +591,18 @@ app.get("/removebook", async(req,res)=>{
 //Handles when owner removes a book from the book store
 app.post("/removebook", async(req,res)=>{
     try{
-        //Set the isremoved boolean for the book store to true
+        //Set the is_removed boolean for the book store to true
         isbn = req.body.isbn
         const removedBook = await pool.query("UPDATE book SET is_removed=TRUE WHERE isbn=$1",[isbn]);
         
-        //Redirect user for a successful book removal
-        res.redirect("/removebook?success=true")
+        
+        if(removedBook.rowCount > 0){
+            //Redirect user for a successful book removal
+            res.redirect("/removebook?success=true")
+        }else{
+            //Redirect user for an unsuccessful book removal
+            res.redirect("/removebook?success=false")
+        }
     }
     catch (err){
         //Redirect user for an unsuccessful book removal
