@@ -12,6 +12,9 @@ Install link here: https://nodejs.org/en/
 #### Clone the repository to your local machine:
 git clone https://github.com/rgillis873/bookstore.git
 
+#### Change into the directory for the repo
+cd bookstore
+
 #### Install the dependencies for the program.To do so, run:
 npm install
 
