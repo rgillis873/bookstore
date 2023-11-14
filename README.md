@@ -1,5 +1,5 @@
 # Look Inna Book Bookstore
-An online book store built with Node.js, Express and SQL. User's can browse, review or purchase books.
+An online book store built with Node.js, Express and SQL. Users can browse, review or purchase books.
 Owners can view sales reports, orders from publishers and can also add or remove books from the store.
 
 ![bookstore-search](https://user-images.githubusercontent.com/59716448/234674286-d2572d28-b477-4c31-be7a-734816885c7a.png)
